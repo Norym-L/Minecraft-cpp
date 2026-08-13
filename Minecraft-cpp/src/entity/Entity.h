@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <atomic>
 #include <memory>
 #include <string>
 #include <vector>
@@ -7,20 +8,34 @@
 
 #include "components/Component.h"
 
+namespace mymc
+{
+	class EntityManager;
+}
+
 namespace entity
 {
 	class Component;
 
 	class Entity
 	{
+		friend class mymc::EntityManager;
 	public:
+		Entity(const std::uint64_t id, std::string name);
+
 		virtual ~Entity() = default;
+
+		/**
+		 * 获取实体唯一id
+		 * @return 唯一id
+		 */
+		[[nodiscard]] std::uint64_t getId() const;
 
 		/**
 		 * 实体更新
 		 * @param delta_time 帧时间
 		 */
-		virtual void update(float delta_time) = 0;
+		virtual void update(float delta_time);
 
 		/**
 		 * 获取实体名称
@@ -98,8 +113,7 @@ namespace entity
 		template <typename T, typename... Args>
 		T* addComponent(Args&&... args)
 		{
-			static_assert(std::is_base_of_v<Component, T>,
-				"T must be derived from Component");
+			static_assert(std::is_base_of_v<Component, T>, "T must be derived from Component");
 
 			auto component = std::make_unique<T>(std::forward<Args>(args)...);
 			T* ptr = component.get();
@@ -134,9 +148,11 @@ namespace entity
 		}
 
 	protected:
+		std::uint64_t m_id;		// 实体唯一id
 		std::string m_name;		// 实体名称
 		glm::vec3 m_position;	// 实体坐标
 		glm::quat m_rotation;	// 实体旋转（四元数）
+		std::atomic<bool> m_isAlive{ true };	// 存活状态
 
 		std::vector<std::unique_ptr<Component>> m_components;	// 实体组件列表
 	};

@@ -2,7 +2,6 @@
 #include "graphics/ShaderProgram.h"
 #include "graphics/Texture.h"
 
-#include <iostream>
 #include <nlohmann/json.hpp>
 
 namespace mymc

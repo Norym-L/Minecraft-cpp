@@ -7,7 +7,7 @@ namespace entity
 	class Player : public Entity
 	{
 	public:
-		Player();
+		Player(const std::uint64_t id, std::string name);
 
 		void update(float delta_time) override;
 

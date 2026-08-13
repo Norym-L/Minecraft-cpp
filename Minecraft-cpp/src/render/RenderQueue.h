@@ -23,30 +23,30 @@ namespace mymc
     /// @brief 3D 渲染命令，描述一次绘制所需的网格、材质与模型矩阵。
     struct RenderCommand
     {
-        Mesh* mesh = nullptr;        ///< 待绘制的网格
-        Material* material = nullptr; ///< 使用的材质
-        glm::mat4 model_matrix;        ///< 模型变换矩阵
+        Mesh* mesh = nullptr;           // 待绘制的网格
+        Material* material = nullptr;   // 使用的材质
+        glm::mat4 model_matrix;        // 模型变换矩阵
     };
 
     /// @brief 2D 渲染命令，描述一个矩形的变换、贴图、颜色与 UV。
     struct RenderCommand2D
     {
-        glm::mat4 model_matrix;        ///< 模型变换矩阵
-        Texture* texture = nullptr;   ///< 使用的贴图
-        glm::vec4 color;             ///< 颜色
-        glm::vec2 size;              ///< 尺寸
-        glm::vec2 lower_left_uv;       ///< 左下角 UV
-        glm::vec2 upper_right_uv;      ///< 右上角 UV
-        glm::vec2 pivot;             ///< 中心点
+        glm::mat4 model_matrix;         // 模型变换矩阵
+        Texture* texture = nullptr;     // 使用的贴图
+        glm::vec4 color;                // 颜色
+        glm::vec2 size;                 // 尺寸
+        glm::vec2 lower_left_uv;        // 左下角 UV
+        glm::vec2 upper_right_uv;       // 右上角 UV
+        glm::vec2 pivot;                // 中心点
     };
 
     /// @brief UI 渲染命令，描述一次 UI 批量绘制所需的网格、着色器与批次。
     struct RenderCommandUI
     {
-        Mesh* mesh;                 ///< 待绘制的网格
-        ShaderProgram* shader_program; ///< 使用的着色器程序
-        size_t screen_width;          ///< 屏幕宽度
-        size_t screen_height;         ///< 屏幕高度
+        Mesh* mesh;                     // 待绘制的网格
+        ShaderProgram* shader_program;  // 使用的着色器程序
+        size_t screen_width;            // 屏幕宽度
+        size_t screen_height;           // 屏幕高度
     };
 
     /// @brief 渲染队列类，用于存储和管理 3D/2D/UI 渲染命令并统一执行绘制。

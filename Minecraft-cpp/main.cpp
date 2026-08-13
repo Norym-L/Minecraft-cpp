@@ -1,6 +1,6 @@
 ﻿#include <iostream>
 
-#include "core/Core.h"
+#include "mymc.h"
 
 int main()
 {

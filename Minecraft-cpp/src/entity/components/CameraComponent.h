@@ -1,11 +1,13 @@
 ﻿#pragma once
 
+#include <mutex>
+
 #include "Common.h"
 #include "Component.h"
 
 namespace entity
 {
-	class Camera : public Component
+	class CameraComponent : public Component
 	{
 	public:
 		void init() override;
@@ -32,7 +34,8 @@ namespace entity
 		[[nodiscard]] mymc::CameraData& getCameraData();
 
 	private:
-		mymc::CameraData m_cameraData; // 相机数据
+		std::mutex m_cameraDataMutex;	// 锁相机数据
+		mymc::CameraData m_cameraData;	// 相机数据
 		float m_fov = 60.0f;		// 垂直渲染角度
 		float m_nearPlane = 0.1f;	// 最近渲染距离
 		float m_farPlane = 100.0f;	// 最远渲染距离

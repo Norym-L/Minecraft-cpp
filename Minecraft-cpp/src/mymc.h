@@ -8,3 +8,6 @@
 #include "render/Material.h"
 #include "render/Mesh.h"
 #include "render/RenderQueue.h"
+
+#include "core/Core.h"
+#include "core/EntityManager.h"

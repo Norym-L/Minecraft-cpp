@@ -32,6 +32,7 @@ namespace mymc
 		GraphicsAPI& graphicsAPI,
 		const CameraData& camera_data)
 	{
+
 		// 3D
 		for (auto& command : m_commands)
 		{
@@ -45,6 +46,10 @@ namespace mymc
 			{
 				continue;
 			}
+			//  临时光照
+			shader_program->setUniform("uLight.color", glm::vec3(1.0f));
+			shader_program->setUniform("uLight.direction", glm::vec3(-0.5f, -1.0f, -0.3f));
+			shader_program->setUniform("uUseTexture", 0);
 
 			shader_program->setUniform("uModel", command.model_matrix);
 			shader_program->setUniform("uView", camera_data.view_matrix);
