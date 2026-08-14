@@ -13,7 +13,7 @@ namespace mymc
 	{
 		m_vertexLayout = layout;
 
-		auto& graphicsAPI = Core::GetInstance().getGraphicsAPI();
+		auto& graphicsAPI = Core::getInstance().getGraphicsAPI();
 
 		m_VBO = graphicsAPI.createVertexBuffer(vertices);
 		m_EBO = graphicsAPI.createIndexBuffer(indices);
@@ -44,7 +44,7 @@ namespace mymc
 	{
 		m_vertexLayout = layout;
 
-		auto& graphicsAPI = Core::GetInstance().getGraphicsAPI();
+		auto& graphicsAPI = Core::getInstance().getGraphicsAPI();
 
 		m_VBO = graphicsAPI.createVertexBuffer(vertices);
 
@@ -134,7 +134,7 @@ namespace mymc
 		if (m_EBO == 0)
 		{
 			//首次创建 EBO：保存句柄并绑定进 VAO，供 DrawIndexedRange 使用
-			m_EBO = Core::GetInstance().getGraphicsAPI().createIndexBuffer(indices);
+			m_EBO = Core::getInstance().getGraphicsAPI().createIndexBuffer(indices);
 			glBindVertexArray(m_VAO);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 			glBindVertexArray(0);

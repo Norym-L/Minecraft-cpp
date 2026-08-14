@@ -6,6 +6,7 @@
 #include "EntityManager.h"
 #include "mymc.h"
 #include "GLFW/glfw3.h"
+#include "input/InputManager.h"
 
 namespace mymc
 {
@@ -19,7 +20,7 @@ namespace mymc
 		 * 获取单例
 		 * @return Core对象单例
 		 */
-		static Core& GetInstance();
+		static Core& getInstance();
 
 		/**
 		 * 初始化核心
@@ -34,6 +35,12 @@ namespace mymc
 		 * 主循环运行
 		 */
 		void run();
+
+		/**
+		 * 设置鼠标是否启用
+		 * @param enabled true 启用鼠标 false 禁用鼠标
+		 */
+		void setCursorEnabled(bool enabled);
 
 		/**
 		 * 获取图形api
@@ -53,14 +60,22 @@ namespace mymc
 		 */
 		EntityManager& getEntityManager();
 
+		/**
+		 * 获取按键输入管理器
+		 * @return 按键输入管理器引用
+		 */
+		InputManager& getInputManager();
+
 	private:
 		Core() = default;
 		~Core() = default;
 
 		GLFWwindow* m_window = nullptr;	// 窗口指针
 		std::chrono::steady_clock::time_point m_lastTime;                 // 上一帧时间点（用于计算 deltaTime）
-		GraphicsAPI m_graphicsApi;	// 图形api
+		bool m_cursorEnabled = false; // 光标是否启用
+		GraphicsAPI m_graphicsAPI;	// 图形api
 		RenderQueue m_renderQueue;	// 渲染队列
 		EntityManager m_entityManager; // 实体管理器
+		InputManager m_inputManager; // 按键输入管理器
 	};
 }
