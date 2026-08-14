@@ -18,6 +18,11 @@ namespace mymc
 	class EntityManager
 	{
 	public:
+		/**
+		 * 更新管理的所有实体
+		 * @param delta_time 帧时间
+		 */
+		void update(float delta_time);
 
 		/**
 		 * 添加实体（直接构造）
@@ -49,7 +54,7 @@ namespace mymc
 		 * 删除实体
 		 * @param id 实体id
 		 */
-		void removeEntity(const uint64_t id);
+		void removeEntity(uint64_t id);
 
 		/**
 		 * 删除所有非存活实体
