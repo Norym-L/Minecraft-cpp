@@ -54,9 +54,14 @@ namespace
 	}
 
 	//窗口尺寸回调函数
-	void windowSizeCallback(GLFWwindow* window, const int width, const int heightt)
+	void windowSizeCallback(GLFWwindow* window, const int width, const int height)
 	{
-		mymc::Core::getInstance().getGraphicsAPI().setViewport(0, 0, width, heightt);
+		auto& core = mymc::Core::getInstance();
+		core.getGraphicsAPI().setViewport(0, 0, width, height);
+		if (const auto entity = core.getEntityManager().getMainCamera())
+		{
+			entity->getComponent<entity::CameraComponent>()->setWindowSize(width, height);
+		}
 	}
 }
 
@@ -110,6 +115,8 @@ namespace mymc
 		m_graphicsAPI.setClearColor(0.4f, 0.6f, 0.9f, 1.0f);
 		m_renderQueue.init();
 
+		setCursorEnabled(false);	// 默认禁用光标
+
 		return true;
 	}
 
@@ -140,7 +147,7 @@ namespace mymc
 		{
 			glfwPollEvents();
 
-			if (m_inputManager.wasKeyPressed(GLFW_KEY_ESCAPE))
+			if (m_inputManager.wasKeyReleased(GLFW_KEY_ESCAPE))
 			{
 				setCursorEnabled(!m_cursorEnabled);
 			}
@@ -175,7 +182,8 @@ namespace mymc
 				camera = m_entityManager.getMainCamera();
 			}
 
-			m_graphicsAPI.clearBuffers();         // 每帧清屏
+			m_inputManager.clearStates();		// 每帧清理按键状态
+			m_graphicsAPI.clearBuffers();       // 每帧清屏
 			m_renderQueue.draw(m_graphicsAPI, camera_data);
 			glfwSwapBuffers(m_window);            // ★ 关键：交换缓冲上屏
 		}
@@ -185,6 +193,7 @@ namespace mymc
 	{
 		glfwSetInputMode(m_window, GLFW_CURSOR, enabled ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
 		m_cursorEnabled = enabled;
+		m_inputManager.setMousePositionChangedEventEnable(!enabled);
 	}
 
 	GraphicsAPI& Core::getGraphicsAPI()

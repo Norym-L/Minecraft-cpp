@@ -37,7 +37,7 @@ namespace mymc
 		void run();
 
 		/**
-		 * 设置鼠标是否启用
+		 * 设置鼠标是否启用（同时禁用光标移动事件）
 		 * @param enabled true 启用鼠标 false 禁用鼠标
 		 */
 		void setCursorEnabled(bool enabled);

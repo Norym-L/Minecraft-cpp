@@ -15,7 +15,7 @@ namespace entity
         auto rotation = m_owner->getRotation();
 
 
-        if (input_manager.isMousePositionChanged())
+        if (input_manager.isMousePositionChanged() && input_manager.isMousePositionChangedEventEnable())
         {
             const auto& old_pos = input_manager.getMousePositionOld();
             const auto& current_pos = input_manager.getMousePositionCurrent();
@@ -31,7 +31,7 @@ namespace entity
             //绕X轴旋转
             const float x_delta_angle = -delta_y * m_sensitivity;
             m_xRot += x_delta_angle;
-            m_xRot = std::clamp(m_xRot, -89.0f, 89.0f);
+            m_xRot = std::clamp(m_xRot, -89.99f, 89.99f);
             const glm::quat x_rot = glm::angleAxis(glm::radians(m_xRot), glm::vec3(1.0f, 0.0f, 0.0f));
 
             rotation = glm::normalize(y_rot * x_rot);
