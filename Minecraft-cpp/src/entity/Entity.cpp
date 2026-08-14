@@ -11,7 +11,7 @@ namespace entity
 		return m_id;
 	}
 
-	void Entity::update(float delta_time)
+	void Entity::update(const float delta_time)
 	{
 		if (!m_components.empty())
 		{

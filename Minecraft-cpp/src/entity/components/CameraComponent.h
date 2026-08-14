@@ -25,7 +25,7 @@ namespace entity
 		 * @param aspect 宽高比
 		 * @return mat4投影矩阵
 		 */
-		[[nodiscard]] glm::mat4 getProjectMatrix(const float aspect) const;
+		[[nodiscard]] glm::mat4 getProjectMatrix(float aspect) const;
 
 		/**
 		 * 获取相机数据

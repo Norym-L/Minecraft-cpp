@@ -21,7 +21,7 @@ namespace entity
 	{
 		friend class mymc::EntityManager;
 	public:
-		Entity(const std::uint64_t id, std::string name);
+		Entity(std::uint64_t id, std::string name);
 
 		virtual ~Entity() = default;
 
@@ -100,6 +100,8 @@ namespace entity
 		void addComponent(std::unique_ptr<T> component)
 		{
 			static_assert(std::is_base_of_v<Component, T>, "T must based on class Component");
+			component->setOwner(this);
+			component->init();
 			m_components.push_back(std::move(component));
 		}
 
@@ -116,6 +118,8 @@ namespace entity
 			static_assert(std::is_base_of_v<Component, T>, "T must be derived from Component");
 
 			auto component = std::make_unique<T>(std::forward<Args>(args)...);
+			component->setOwner(this);
+			component->init();
 			T* ptr = component.get();
 			m_components.push_back(std::move(component));
 			return ptr;
@@ -128,7 +132,7 @@ namespace entity
 		 * @return true 成功 false 失败
 		 */
 		template <typename T>
-		[[nodiscard]] bool removeComponent(std::size_t index)
+		[[nodiscard]] bool removeComponent(const std::size_t index)
 		{
 			static_assert(std::is_base_of_v<Component, T>, "T must be derived from Component");
 			size_t count = 0;
@@ -150,8 +154,8 @@ namespace entity
 	protected:
 		std::uint64_t m_id;		// 实体唯一id
 		std::string m_name;		// 实体名称
-		glm::vec3 m_position;	// 实体坐标
-		glm::quat m_rotation;	// 实体旋转（四元数）
+		glm::vec3 m_position{0.0f};	// 实体坐标
+		glm::quat m_rotation{1.0f, 0.0f, 0.0f, 0.0f};	// 实体旋转（四元数）
 		std::atomic<bool> m_isAlive{ true };	// 存活状态
 
 		std::vector<std::unique_ptr<Component>> m_components;	// 实体组件列表

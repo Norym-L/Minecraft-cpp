@@ -25,7 +25,7 @@ namespace entity
 		 * 获取此组件的所有者
 		 * @return 所有者引用
 		 */
-		const Entity& getOwner() const;
+		[[nodiscard]] const Entity& getOwner() const;
 
 		/**
 		 * 设置此组件的所有者
@@ -37,7 +37,7 @@ namespace entity
 		 * 获取组件名称
 		 * @return 名称字符串
 		 */
-		const std::string& getName() const;
+		[[nodiscard]] const std::string& getName() const;
 
 	protected:
 		std::string m_name;	// 组件名称
