@@ -22,13 +22,13 @@ namespace mymc
 		 * @brief 设置材质的着色器程序。
 		 * @param shader_program 着色器程序的智能指针
 		 */
-		void setShaderProgram(std::shared_ptr<ShaderProgram> shader_program);
+		void setShaderProgram(const std::shared_ptr<ShaderProgram> &shader_program);
 
 		/**
 		 * @brief 获取着色器程序。
 		 * @return ShaderProgram* 着色器程序
 		 */
-		ShaderProgram* getShaderProgram();
+		ShaderProgram* getShaderProgram() const;
 
 		/**
 		 * @brief 设置材质的一维浮点参数。

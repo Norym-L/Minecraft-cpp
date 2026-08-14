@@ -7,87 +7,90 @@
 
 namespace mymc
 {
-	bool GraphicsAPI::init()
-	{
-		glEnable(GL_DEPTH_TEST); //启用深度缓测试
-		return true;
-	}
+    bool GraphicsAPI::Init()
+    {
+        glEnable(GL_DEPTH_TEST); //启用深度缓测试
+        return true;
+    }
 
-	std::shared_ptr<ShaderProgram> GraphicsAPI::createShaderProgram(const std::string& vertex_source,
-		const std::string& fragment_source)
-	{
-		ShaderKey key{ vertex_source, fragment_source };
-		auto it = m_shaderCache.find(key);
-		if (it != m_shaderCache.end())
-		{
-			return it->second;
-		}
+    std::shared_ptr<ShaderProgram> GraphicsAPI::createShaderProgram(const std::string &vertex_source,
+                                                                    const std::string &fragment_source)
+    {
+        ShaderKey key{
+                .vertex_source = vertex_source,
+                .fragment_source = fragment_source
+                };
+
+        if (const auto it = m_shaderCache.find(key); it != m_shaderCache.end())
+        {
+            return it->second;
+        }
 
 
-		GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-		const char* vertex_shader_cstr = vertex_source.c_str();
-		glShaderSource(vertex_shader, 1, &vertex_shader_cstr, nullptr);
-		glCompileShader(vertex_shader);
+        const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+        const char* vertex_shader_cstr = vertex_source.c_str();
+        glShaderSource(vertex_shader, 1, &vertex_shader_cstr, nullptr);
+        glCompileShader(vertex_shader);
 
-		GLint success;
-		glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
-		if (!success)
-		{
-			char infoLog[512];
-			glGetShaderInfoLog(vertex_shader, 512, nullptr, infoLog);
-			std::cerr << "ERROR:VERTEX_SHADER_COMPILATION_FAILED: " << infoLog << std::endl;
-			glDeleteShader(vertex_shader);
-			return nullptr;
-		}
+        GLint success;
+        glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            char infoLog[512];
+            glGetShaderInfoLog(vertex_shader, 512, nullptr, infoLog);
+            std::cerr << "ERROR:VERTEX_SHADER_COMPILATION_FAILED: " << infoLog << std::endl;
+            glDeleteShader(vertex_shader);
+            return nullptr;
+        }
 
-		GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-		const char* fragment_shader_cstr = fragment_source.c_str();
-		glShaderSource(fragment_shader, 1, &fragment_shader_cstr, nullptr);
-		glCompileShader(fragment_shader);
+        const GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+        const char* fragment_shader_cstr = fragment_source.c_str();
+        glShaderSource(fragment_shader, 1, &fragment_shader_cstr, nullptr);
+        glCompileShader(fragment_shader);
 
-		glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
-		if (!success)
-		{
-			char info_log[512];
-			glGetShaderInfoLog(fragment_shader, 512, nullptr, info_log);
-			std::cerr << "ERROR:FRAGMENT_SHADER_COMPILATION_FAILED: " << info_log << std::endl;
-			glDeleteShader(vertex_shader);
-			glDeleteShader(fragment_shader);
-			return nullptr;
-		}
+        glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            char info_log[512];
+            glGetShaderInfoLog(fragment_shader, 512, nullptr, info_log);
+            std::cerr << "ERROR:FRAGMENT_SHADER_COMPILATION_FAILED: " << info_log << std::endl;
+            glDeleteShader(vertex_shader);
+            glDeleteShader(fragment_shader);
+            return nullptr;
+        }
 
-		GLuint shader_program_id = glCreateProgram();
-		glAttachShader(shader_program_id, vertex_shader);
-		glAttachShader(shader_program_id, fragment_shader);
-		glLinkProgram(shader_program_id);
+        GLuint shader_program_id = glCreateProgram();
+        glAttachShader(shader_program_id, vertex_shader);
+        glAttachShader(shader_program_id, fragment_shader);
+        glLinkProgram(shader_program_id);
 
-		glGetProgramiv(shader_program_id, GL_LINK_STATUS, &success);
-		if (!success)
-		{
-			char info_log[512];
-			glGetProgramInfoLog(shader_program_id, 512, nullptr, info_log);
-			std::cerr << "ERROR:SHADER_PROGRAM_LINKING_FAILED: " << info_log << std::endl;
-			glDeleteShader(vertex_shader);
-			glDeleteShader(fragment_shader);
-			glDeleteProgram(shader_program_id);
-			return nullptr;
-		}
+        glGetProgramiv(shader_program_id, GL_LINK_STATUS, &success);
+        if (!success)
+        {
+            char info_log[512];
+            glGetProgramInfoLog(shader_program_id, 512, nullptr, info_log);
+            std::cerr << "ERROR:SHADER_PROGRAM_LINKING_FAILED: " << info_log << std::endl;
+            glDeleteShader(vertex_shader);
+            glDeleteShader(fragment_shader);
+            glDeleteProgram(shader_program_id);
+            return nullptr;
+        }
 
-		glDeleteShader(vertex_shader);
-		glDeleteShader(fragment_shader);
+        glDeleteShader(vertex_shader);
+        glDeleteShader(fragment_shader);
 
-		auto shader_program = std::make_shared<ShaderProgram>(shader_program_id);
-		m_shaderCache.emplace(key, shader_program);
+        auto shader_program = std::make_shared<ShaderProgram>(shader_program_id);
+        m_shaderCache.emplace(key, shader_program);
 
-		return shader_program;
-	}
+        return shader_program;
+    }
 
-	const std::shared_ptr<ShaderProgram>& GraphicsAPI::getDefaultShaderProgram()
-	{
-		//创建默认着色器
-		if (!m_defaultShaderProgram)
-		{
-			std::string vertexShaderSource = R"(
+    const std::shared_ptr<ShaderProgram> &GraphicsAPI::getDefaultShaderProgram()
+    {
+        //创建默认着色器
+        if (!m_defaultShaderProgram)
+        {
+            const std::string vertexShaderSource = R"(
 				#version 330 core
 				layout (location = 0) in vec3 position;
 				layout (location = 1) in vec3 color;
@@ -115,7 +118,7 @@ namespace mymc
 					gl_Position = uProjection * uView * uModel * vec4(position, 1.0);
 				}
 			)";
-			std::string fragmentShaderSource = R"(
+            const std::string fragmentShaderSource = R"(
 				#version 330 core
 
 				struct Light
@@ -126,7 +129,7 @@ namespace mymc
 				uniform Light uLight;
 				uniform vec3 uCameraPos;
 
-				out vec4 FragColor;		
+				out vec4 FragColor;
 
 				in vec2 vUV;
 				in vec3 vNormal;
@@ -150,11 +153,11 @@ namespace mymc
 					float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
 					float specularStrmymcth = 0.5;
 					vec3 specular = specularStrmymcth * spec * uLight.color;
-					
+
 					//环境光
 					const float ambientStrmymcth = 0.4;
 					vec3 ambient = ambientStrmymcth * uLight.color;
-	
+
 					vec3 result = diffuse + specular + ambient;
 
 					//无贴图时使用顶点颜色，避免采样残留绑定
@@ -166,18 +169,18 @@ namespace mymc
 				}
 			)";
 
-			m_defaultShaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
-		}
+            m_defaultShaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
+        }
 
-		return m_defaultShaderProgram;
-	}
+        return m_defaultShaderProgram;
+    }
 
-	const std::shared_ptr<ShaderProgram>& GraphicsAPI::getDefault2DShaderProgram()
-	{
-		//创建默认2D着色器
-		if (!m_default2DShaderProgram)
-		{
-			std::string vertexShaderSource = R"(
+    const std::shared_ptr<ShaderProgram> &GraphicsAPI::getDefault2DShaderProgram()
+    {
+        //创建默认2D着色器
+        if (!m_default2DShaderProgram)
+        {
+            const std::string vertexShaderSource = R"(
 				#version 330 core
 				layout (location = 0) in vec2 position;
 
@@ -201,7 +204,7 @@ namespace mymc
 					gl_Position = uProjection * uView * uModel * vec4(local, 0.0, 1.0);
 				}
 			)";
-			std::string fragmentShaderSource = R"(
+            const std::string fragmentShaderSource = R"(
 				#version 330 core
 
 				in vec2 vUV;
@@ -219,17 +222,17 @@ namespace mymc
 				}
 			)";
 
-			m_default2DShaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
-		}
+            m_default2DShaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
+        }
 
-		return m_default2DShaderProgram;
-	}
+        return m_default2DShaderProgram;
+    }
 
-	const std::shared_ptr<ShaderProgram>& GraphicsAPI::getDefaultUIShaderProgram()
-	{
-		if (!m_defaultUIShaderProgram)
-		{
-			std::string vertexShaderSource = R"(
+    const std::shared_ptr<ShaderProgram> &GraphicsAPI::getDefaultUIShaderProgram()
+    {
+        if (!m_defaultUIShaderProgram)
+        {
+            const std::string vertexShaderSource = R"(
 				#version 330 core
 				layout (location = 0) in vec2 position;
 				layout (location = 1) in vec4 color;
@@ -248,7 +251,7 @@ namespace mymc
 					gl_Position = uProjection * vec4(position, 0.0, 1.0);
 				}
 			)";
-			std::string fragmentShaderSource = R"(
+            const std::string fragmentShaderSource = R"(
 				#version 330 core
 
 				in vec2 vUV;
@@ -266,131 +269,132 @@ namespace mymc
 				}
 			)";
 
-			m_defaultUIShaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
-		}
+            m_defaultUIShaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
+        }
 
-		return m_defaultUIShaderProgram;
-	}
+        return m_defaultUIShaderProgram;
+    }
 
-	GLuint GraphicsAPI::createVertexBuffer(const std::vector<float>& vertices)
-	{
-		GLuint VBO = 0;
-		glGenBuffers(1, &VBO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		return VBO;
-	}
+    GLuint GraphicsAPI::CreateVertexBuffer(const std::vector<float> &vertices)
+    {
+        GLuint VBO = 0;
+        glGenBuffers(1, &VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertices.size() * sizeof(float)), vertices.data(),
+                     GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        return VBO;
+    }
 
-	GLuint GraphicsAPI::createIndexBuffer(const std::vector<uint32_t>& indices)
-	{
-		GLuint EBO = 0;
-		glGenBuffers(1, &EBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		return EBO;
-	}
+    GLuint GraphicsAPI::CreateIndexBuffer(const std::vector<uint32_t> &indices)
+    {
+        GLuint EBO = 0;
+        glGenBuffers(1, &EBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(indices.size() * sizeof(uint32_t)),
+                     indices.data(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        return EBO;
+    }
 
-	void GraphicsAPI::setClearColor(float r, float g, float b, float a)
-	{
-		glClearColor(r, g, b, a);
-	}
+    void GraphicsAPI::SetClearColor(const float r, const float g, const float b, const float a)
+    {
+        glClearColor(r, g, b, a);
+    }
 
-	void GraphicsAPI::clearBuffers()
-	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
+    void GraphicsAPI::ClearBuffers()
+    {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
 
-	const Rect& GraphicsAPI::getViewport() const
-	{
-		return m_viewport;
-	}
+    const Rect &GraphicsAPI::getViewport() const
+    {
+        return m_viewport;
+    }
 
-	void GraphicsAPI::setViewport(int x, int y, int width, int height)
-	{
-		glViewport(x, y, width, height);
-		m_viewport.x = x;
-		m_viewport.y = y;
-		m_viewport.width = width;
-		m_viewport.height = height;
-	}
+    void GraphicsAPI::setViewport(const int x, const int y, const int width, const int height)
+    {
+        glViewport(x, y, width, height);
+        m_viewport.x = x;
+        m_viewport.y = y;
+        m_viewport.width = width;
+        m_viewport.height = height;
+    }
 
-	void GraphicsAPI::setDepthTestEnabled(bool enabled)
-	{
-		if (enabled)
-		{
-			glEnable(GL_DEPTH_TEST);
-		}
-		else
-		{
-			glDisable(GL_DEPTH_TEST);
-		}
-	}
+    void GraphicsAPI::SetDepthTestEnabled(const bool enabled)
+    {
+        if (enabled)
+        {
+            glEnable(GL_DEPTH_TEST);
+        }
+        else
+        {
+            glDisable(GL_DEPTH_TEST);
+        }
+    }
 
-	void GraphicsAPI::setBlendMode(BlendMode mode)
-	{
-		switch (mode)
-		{
-		case BlendMode::DISABLE:
-			glDisable(GL_BLEND);
-			break;
-		case BlendMode::ALPHA:
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			break;
-		case BlendMode::ADDITIVE:
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_ONE, GL_ONE);
-			break;
-		case BlendMode::MULTIPLY:
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_DST_COLOR, GL_ZERO);
-			break;
-		default:
-			glDisable(GL_BLEND);
-			break;
-		}
-	}
+    void GraphicsAPI::SetBlendMode(const BlendMode mode)
+    {
+        switch (mode)
+        {
+            case BlendMode::DISABLE:
+                glDisable(GL_BLEND);
+                break;
+            case BlendMode::ALPHA:
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                break;
+            case BlendMode::ADDITIVE:
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_ONE, GL_ONE);
+                break;
+            case BlendMode::MULTIPLY:
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_DST_COLOR, GL_ZERO);
+                break;
+            default:
+                glDisable(GL_BLEND);
+                break;
+        }
+    }
 
-	void GraphicsAPI::bindShaderProgram(ShaderProgram* shader_program)
-	{
-		if (shader_program)
-		{
-			shader_program->bind();
-		}
-	}
+    void GraphicsAPI::BindShaderProgram(ShaderProgram* shader_program)
+    {
+        if (shader_program)
+        {
+            shader_program->bind();
+        }
+    }
 
-	void GraphicsAPI::bindMaterial(Material* material)
-	{
-		if (material)
-		{
-			material->bind();
-		}
-	}
+    void GraphicsAPI::BindMaterial(Material* material)
+    {
+        if (material)
+        {
+            material->bind();
+        }
+    }
 
-	void GraphicsAPI::bindMesh(Mesh* mesh)
-	{
-		if (mesh)
-		{
-			mesh->bind();
-		}
-	}
+    void GraphicsAPI::BindMesh(const Mesh* mesh)
+    {
+        if (mesh)
+        {
+            mesh->bind();
+        }
+    }
 
-	void GraphicsAPI::unbindMesh(Mesh* mesh)
-	{
-		if (mesh)
-		{
-			mesh->unbind();
-		}
-	}
+    void GraphicsAPI::UnbindMesh(const Mesh* mesh)
+    {
+        if (mesh)
+        {
+            Mesh::Unbind();
+        }
+    }
 
-	void GraphicsAPI::drawMesh(Mesh* mesh)
-	{
-		if (mesh)
-		{
-			mesh->draw();
-		}
-	}
-
+    void GraphicsAPI::DrawMesh(const Mesh* mesh)
+    {
+        if (mesh)
+        {
+            mesh->draw();
+        }
+    }
 }

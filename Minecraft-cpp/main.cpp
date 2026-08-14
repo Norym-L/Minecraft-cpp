@@ -4,11 +4,11 @@
 
 int main()
 {
-	auto& core = mymc::Core::getInstance();
-	if (!core.init(800, 600, "mc-cpp"))
-	{
-		std::cerr << "核心初始化失败" << std::endl;
-		return -1;
-	}
-	core.run();
+    auto &core = mymc::Core::getInstance();
+    if (!core.init(800, 600, "mc-cpp"))
+    {
+        std::cerr << "核心初始化失败" << std::endl;
+        return -1;
+    }
+    core.run();
 }

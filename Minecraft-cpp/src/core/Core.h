@@ -29,7 +29,7 @@ namespace mymc
 		 * @param title 窗口标题
 		 * @return true 成功 false 失败
 		 */
-		[[nodiscard]] bool init(const int width, const int height, const std::string& title);
+		[[nodiscard]] bool init(int width, int height, const std::string& title);
 
 		/**
 		 * 主循环运行

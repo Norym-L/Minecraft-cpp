@@ -47,7 +47,7 @@ namespace entity
 		m_rotation = rotation;
 	}
 
-	const std::vector<std::unique_ptr<entity::Component>>& Entity::getComponents() const
+	const std::vector<std::unique_ptr<Component>>& Entity::getComponents() const
 	{
 		return m_components;
 	}

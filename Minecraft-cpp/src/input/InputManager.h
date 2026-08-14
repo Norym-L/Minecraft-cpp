@@ -11,10 +11,14 @@ namespace mymc
     {
     public:
         InputManager() = default;
-        InputManager(const InputManager&) = delete;
-        InputManager(InputManager&&) = delete;
-        InputManager& operator=(const InputManager&) = delete;
-        InputManager& operator=(InputManager&&) = delete;
+
+        InputManager(const InputManager &) = delete;
+
+        InputManager(InputManager &&) = delete;
+
+        InputManager &operator=(const InputManager &) = delete;
+
+        InputManager &operator=(InputManager &&) = delete;
 
     public:
         /**
@@ -79,6 +83,7 @@ namespace mymc
          * @param pressed 是否标记为按下
          */
         void setMouseButtonWasPressed(int button, bool pressed);
+
         /**
          * @brief 查询指定鼠标按键在本帧是否被按下。
          * @param button 鼠标按键（GLFW 鼠标键码）
@@ -92,6 +97,7 @@ namespace mymc
          * @param Released 是否标记为释放
          */
         void setMouseButtonWasReleased(int button, bool Released);
+
         /**
          * @brief 查询指定鼠标按键在本帧是否被释放。
          * @param button 鼠标按键（GLFW 鼠标键码）
@@ -103,31 +109,32 @@ namespace mymc
          * @brief 设置上一帧的鼠标位置。
          * @param pos 上一帧鼠标位置
          */
-        void setMousePositionOld(const glm::vec2& pos);
+        void setMousePositionOld(const glm::vec2 &pos);
 
         /**
          * @brief 获取上一帧的鼠标位置。
          * @return const glm::vec2& 上一帧鼠标位置
          */
-        [[nodiscard]] const glm::vec2& getMousePositionOld() const;
+        [[nodiscard]] const glm::vec2 &getMousePositionOld() const;
 
         /**
          * @brief 设置当前帧的鼠标位置。
          * @param pos 当前帧鼠标位置
          */
-        void setMousePositionCurrent(const glm::vec2& pos);
+        void setMousePositionCurrent(const glm::vec2 &pos);
 
         /**
          * @brief 获取当前帧的鼠标位置。
          * @return const glm::vec2& 当前帧鼠标位置
          */
-        [[nodiscard]] const glm::vec2& getMousePositionCurrent() const;
+        [[nodiscard]] const glm::vec2 &getMousePositionCurrent() const;
 
         /**
          * @brief 设置鼠标位置是否改变。
          * @param changed 是否改变
          */
         void setMousePositionChanged(bool changed);
+
         /**
          * @brief 查询鼠标位置是否改变。
          * @return bool 改变返回 true
@@ -149,19 +156,17 @@ namespace mymc
         /// @brief 清空本帧的瞬时状态（鼠标位置改变标志与按键按下/释放标志）。
         void clearStates();
 
-
-
     private:
-        std::array<bool, 512> m_keys = { false };               // 键盘按键状态表
-        std::array<bool, 512> m_KeyPressed = { false };         // 键盘按键本帧按下状态表
-        std::array<bool, 512> m_KeyReleased = { false };        // 键盘按键本帧释放状态表
-        std::array<bool, 16> m_mouseKeys = { false };                       // 鼠标按键状态表
-        std::array<bool, 16> m_mouseKeysPressed = { false };                // 鼠标按键本帧按下状态表
-        std::array<bool, 16> m_mouseKeysReleased = { false };               // 鼠标按键本帧释放状态表
-        glm::vec2 m_mousePositionOld = glm::vec2(0.0f);               // 上一帧鼠标位置
-        glm::vec2 m_mousePositionCurrent = glm::vec2(0.0f);           // 当前帧鼠标位置
-        bool m_mousePositionChanged = false;                                // 鼠标位置是否改变
-        bool m_mousePositionChangedEventEnable = true;                      // 鼠标位置改变事件启用状态
+        std::array<bool, 512> m_keys = {false};             // 键盘按键状态表
+        std::array<bool, 512> m_KeyPressed = {false};       // 键盘按键本帧按下状态表
+        std::array<bool, 512> m_KeyReleased = {false};      // 键盘按键本帧释放状态表
+        std::array<bool, 16> m_mouseKeys = {false};         // 鼠标按键状态表
+        std::array<bool, 16> m_mouseKeysPressed = {false};  // 鼠标按键本帧按下状态表
+        std::array<bool, 16> m_mouseKeysReleased = {false}; // 鼠标按键本帧释放状态表
+        glm::vec2 m_mousePositionOld = glm::vec2(0.0f);     // 上一帧鼠标位置
+        glm::vec2 m_mousePositionCurrent = glm::vec2(0.0f); // 当前帧鼠标位置
+        bool m_mousePositionChanged = false;                // 鼠标位置是否改变
+        bool m_mousePositionChangedEventEnable = true;      // 鼠标位置改变事件启用状态
     };
 } // mymc
 

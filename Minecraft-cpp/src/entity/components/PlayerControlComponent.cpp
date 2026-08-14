@@ -11,14 +11,14 @@ namespace entity
 
     void PlayerControlComponent::update(float delta_time)
     {
-        const auto& input_manager = mymc::Core::getInstance().getInputManager();
+        const auto &input_manager = mymc::Core::getInstance().getInputManager();
         auto rotation = m_owner->getRotation();
 
 
         if (input_manager.isMousePositionChanged() && input_manager.isMousePositionChangedEventEnable())
         {
-            const auto& old_pos = input_manager.getMousePositionOld();
-            const auto& current_pos = input_manager.getMousePositionCurrent();
+            const auto &old_pos = input_manager.getMousePositionOld();
+            const auto &current_pos = input_manager.getMousePositionCurrent();
 
             const float delta_x = current_pos.x - old_pos.x;
             const float delta_y = current_pos.y - old_pos.y;
@@ -59,8 +59,10 @@ namespace entity
             wish_dir = glm::normalize(wish_dir) * m_velocity * delta_time;
         }
 
-        if (input_manager.isKeyPressed(GLFW_KEY_LEFT_SHIFT)) wish_dir -= glm::vec3(0.0f, 1.0f, 0.0f) * delta_time * m_velocity / 3.0f;
-        if (input_manager.isKeyPressed(GLFW_KEY_SPACE)) wish_dir += glm::vec3(0.0f, 1.0f, 0.0f) * delta_time * m_velocity / 3.0f;
+        if (input_manager.isKeyPressed(GLFW_KEY_LEFT_SHIFT))
+            wish_dir -= glm::vec3(0.0f, 1.0f, 0.0f) * delta_time * m_velocity / 3.0f;
+        if (input_manager.isKeyPressed(GLFW_KEY_SPACE))
+            wish_dir += glm::vec3(0.0f, 1.0f, 0.0f) * delta_time * m_velocity / 3.0f;
 
         m_owner->setPosition(m_owner->getPosition() + wish_dir);
     }

@@ -1,14 +1,16 @@
 ﻿#include "EntityManager.h"
 
+#include <ranges>
+
 #include "entity/components/CameraComponent.h"
 
 namespace mymc
 {
     void EntityManager::update(const float delta_time)
     {
-        for (auto it = m_entitys.begin(); it != m_entitys.end(); ++it)
+        for (const auto &val: m_entitys | std::views::values)
         {
-            it->second->update(delta_time);
+            val->update(delta_time);
         }
     }
 
@@ -56,7 +58,7 @@ namespace mymc
                                                         nullptr;
                                                  });
 
-        m_mainCameraEntity = (it != m_entitys.end()) ? it->second.get() : nullptr;
+        m_mainCameraEntity = it != m_entitys.end() ? it->second.get() : nullptr;
     }
 
     entity::Entity* EntityManager::getMainCamera() const

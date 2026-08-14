@@ -32,7 +32,7 @@ namespace mymc
         m_KeyPressed[key] = pressed;
     }
 
-    bool InputManager::wasKeyPressed(int key) const
+    bool InputManager::wasKeyPressed(const int key) const
     {
         if (key < 0 || key >= static_cast<int>(m_KeyPressed.size()))
         {
@@ -52,7 +52,7 @@ namespace mymc
         m_KeyReleased[key] = Released;
     }
 
-    bool InputManager::wasKeyReleased(int key) const
+    bool InputManager::wasKeyReleased(const int key) const
     {
         if (key < 0 || key >= static_cast<int>(m_KeyReleased.size()))
         {
