@@ -20,14 +20,14 @@ namespace mymc
 		 * @param vertices 顶点数据（交错排列的浮点数组）
 		 * @param indices  索引数据
 		 */
-		Mesh(const VertexLayout layout, const std::vector<float>& vertices, const std::vector<uint32_t>& indices);
+		Mesh(VertexLayout layout, const std::vector<float>& vertices, const std::vector<uint32_t>& indices);
 
 		/**
 		 * @brief 构造不带索引的网格，仅上传顶点数据到 GPU。
 		 * @param layout   顶点布局
 		 * @param vertices 顶点数据（交错排列的浮点数组）
 		 */
-		Mesh(const VertexLayout layout, const std::vector<float>& vertices);
+		Mesh(VertexLayout layout, const std::vector<float>& vertices);
 
 		/// @brief 析构函数，释放 VAO/VBO/EBO 等 OpenGL 资源。
 		~Mesh();
