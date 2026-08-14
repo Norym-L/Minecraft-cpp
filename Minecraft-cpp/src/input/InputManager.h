@@ -134,8 +134,22 @@ namespace mymc
          */
         [[nodiscard]] bool isMousePositionChanged() const;
 
+        /**
+         * 获取鼠标位置改变事件启用状态
+         * @return true 启用 false 禁用
+         */
+        [[nodiscard]] bool isMousePositionChangedEventEnable() const;
+
+        /**
+         * 设置鼠标位置改变事件启用状态
+         * @param mouse_position_changed_event_enable 鼠标位置改变事件启用状态
+         */
+        void setMousePositionChangedEventEnable(bool mouse_position_changed_event_enable);
+
         /// @brief 清空本帧的瞬时状态（鼠标位置改变标志与按键按下/释放标志）。
         void clearStates();
+
+
 
     private:
         std::array<bool, 512> m_keys = { false };               // 键盘按键状态表
@@ -147,6 +161,7 @@ namespace mymc
         glm::vec2 m_mousePositionOld = glm::vec2(0.0f);               // 上一帧鼠标位置
         glm::vec2 m_mousePositionCurrent = glm::vec2(0.0f);           // 当前帧鼠标位置
         bool m_mousePositionChanged = false;                                // 鼠标位置是否改变
+        bool m_mousePositionChangedEventEnable = true;                      // 鼠标位置改变事件启用状态
     };
 } // mymc
 

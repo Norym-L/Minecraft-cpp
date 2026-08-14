@@ -152,14 +152,24 @@ namespace mymc
         return m_mousePositionChanged;
     }
 
+    bool InputManager::isMousePositionChangedEventEnable() const
+    {
+        return m_mousePositionChangedEventEnable;
+    }
+
+    void InputManager::setMousePositionChangedEventEnable(const bool mouse_position_changed_event_enable)
+    {
+        m_mousePositionChangedEventEnable = mouse_position_changed_event_enable;
+    }
+
     void InputManager::clearStates()
     {
         setMousePositionChanged(false);
-        for (bool &i : m_KeyPressed)
+        for (bool &i: m_KeyPressed)
         {
             i = false;
         }
-        for (bool &i : m_KeyReleased)
+        for (bool &i: m_KeyReleased)
         {
             i = false;
         }
