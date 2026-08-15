@@ -116,6 +116,8 @@ namespace mymc
         GraphicsAPI::SetClearColor(0.4f, 0.6f, 0.9f, 1.0f);
         m_renderQueue.init();
         m_blockManager.init(); // 注册测试方块（需在 GL 上下文就绪后执行）
+        m_world = std::make_unique<server::World>();
+        m_world->init();
 
         setCursorEnabled(false); // 默认禁用光标
 
@@ -161,6 +163,7 @@ namespace mymc
             m_entityManager.update(delta_time);
             // 更新方块
             m_blockManager.update(delta_time);
+            m_world->render(); // TODO 每帧更新会造成严重渲染卡顿问题
             // 测试结束
 
             CameraData camera_data{};

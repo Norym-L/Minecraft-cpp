@@ -73,8 +73,8 @@ namespace entity
         Entity* getMainCamera() const;
 
     private:
-        std::atomic<std::uint64_t> m_nextId{1};                                        // 原子 ID 分配器，从 1 开始
-        std::mutex m_mutex;                                                            // 保护 m_entitys
+        std::atomic<std::uint64_t> m_nextId{1};                              // 原子 ID 分配器，从 1 开始
+        std::mutex m_mutex;                                                    // 保护 m_entitys
         std::unordered_map<std::uint64_t, std::unique_ptr<Entity> > m_entitys; // 实体容器
         Entity* m_mainCameraEntity = nullptr;                                  // 主相机所在实体指针
     };
