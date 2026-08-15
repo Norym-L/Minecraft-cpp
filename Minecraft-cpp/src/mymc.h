@@ -9,5 +9,9 @@
 #include "render/Mesh.h"
 #include "render/RenderQueue.h"
 
+#include "input/InputManager.h"
+
 #include "core/Core.h"
-#include "core/EntityManager.h"
+
+#include "entity/EntityManager.h"
+#include "blocks/BlockManager.h"

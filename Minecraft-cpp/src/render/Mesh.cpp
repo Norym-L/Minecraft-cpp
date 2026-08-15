@@ -1,9 +1,9 @@
 ﻿#include "Mesh.h"
 
+#include <cmath>
 #include <memory>
 #include <vector>
 
-#include "Core/Core.h"
 #include "graphics/GraphicsAPI.h"
 #include "graphics/VertexLayout.h"
 
@@ -12,8 +12,6 @@ namespace mymc
     Mesh::Mesh(const VertexLayout &layout, const std::vector<float> &vertices, const std::vector<uint32_t> &indices)
     {
         m_vertexLayout = layout;
-
-        auto &graphicsAPI = Core::getInstance().getGraphicsAPI();
 
         m_VBO = GraphicsAPI::CreateVertexBuffer(vertices);
         m_EBO = GraphicsAPI::CreateIndexBuffer(indices);

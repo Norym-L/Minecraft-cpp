@@ -6,12 +6,13 @@
 #include "entity/Player.h"
 #include "entity/components/CameraComponent.h"
 
+// 回调函数
 namespace
 {
     //键盘按键回调函数
     void keyCallback(GLFWwindow* window, const int key, int, const int action, int)
     {
-        auto &inputManager = mymc::Core::getInstance().getInputManager();
+        auto &inputManager = mymc::Core::GetInstance().getInputManager();
         if (action == GLFW_PRESS)
         {
             inputManager.setKeyPressed(key, true);
@@ -27,7 +28,7 @@ namespace
     //鼠标按键回调函数
     void mouseButtonCallback(GLFWwindow* window, const int button, const int action, int mods)
     {
-        auto &inputManager = mymc::Core::getInstance().getInputManager();
+        auto &inputManager = mymc::Core::GetInstance().getInputManager();
         if (action == GLFW_PRESS)
         {
             inputManager.setMouseButtonPressed(button, true);
@@ -43,7 +44,7 @@ namespace
     //鼠标指针回调函数
     void cursorPositionCallback(GLFWwindow* window, const double xpos, const double ypos)
     {
-        auto &inputManager = mymc::Core::getInstance().getInputManager();
+        auto &inputManager = mymc::Core::GetInstance().getInputManager();
 
         inputManager.setMousePositionOld(inputManager.getMousePositionCurrent());
 
@@ -56,7 +57,7 @@ namespace
     //窗口尺寸回调函数
     void windowSizeCallback(GLFWwindow* window, const int width, const int height)
     {
-        auto &core = mymc::Core::getInstance();
+        auto &core = mymc::Core::GetInstance();
         core.getGraphicsAPI().setViewport(0, 0, width, height);
         if (const auto entity = core.getEntityManager().getMainCamera())
         {
@@ -67,7 +68,7 @@ namespace
 
 namespace mymc
 {
-    Core &Core::getInstance()
+    Core &Core::GetInstance()
     {
         static Core instance;
         return instance;
@@ -114,6 +115,7 @@ namespace mymc
         m_graphicsAPI.setViewport(0, 0, width, height);
         GraphicsAPI::SetClearColor(0.4f, 0.6f, 0.9f, 1.0f);
         m_renderQueue.init();
+        m_blockManager.init(); // 注册测试方块（需在 GL 上下文就绪后执行）
 
         setCursorEnabled(false); // 默认禁用光标
 
@@ -139,9 +141,6 @@ namespace mymc
         m_entityManager.reloadMainCamera();
         auto camera = m_entityManager.getMainCamera();
 
-        const auto mesh = Mesh::CreateBox(glm::vec3(1.0f));
-        const auto material = std::make_shared<Material>();
-        material->setShaderProgram(m_graphicsAPI.getDefaultShaderProgram());
 
         while (!glfwWindowShouldClose(m_window))
         {
@@ -160,14 +159,8 @@ namespace mymc
 
             // 更新实体
             m_entityManager.update(delta_time);
-
-            RenderCommand command = {
-                    .mesh = mesh.get(),
-                    .material = material.get(),
-                    .model_matrix = glm::mat4(1.0f)
-                    };
-            m_renderQueue.submit(command);
-
+            // 更新方块
+            m_blockManager.update(delta_time);
             // 测试结束
 
             CameraData camera_data{};
@@ -206,9 +199,14 @@ namespace mymc
         return m_renderQueue;
     }
 
-    EntityManager &Core::getEntityManager()
+    entity::EntityManager &Core::getEntityManager()
     {
         return m_entityManager;
+    }
+
+    block::BlockManager& Core::getBlockManager()
+    {
+        return m_blockManager;
     }
 
     InputManager &Core::getInputManager()
