@@ -56,6 +56,8 @@ namespace block
             registerBlock(std::make_unique<Block>(std::forward<Args>(args)...));
         }
 
+        const Block& getBlock(std::uint64_t block_id) const;
+
     private:
         std::uint64_t m_next_id = 0; // 下一个方块的注册id
         std::unordered_map<std::uint64_t, std::unique_ptr<Block>> m_blockMap; // 方块映射表

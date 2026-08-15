@@ -51,6 +51,9 @@ namespace block
         //         std::shared_ptr<mymc::Material> material,
         //         std::shared_ptr<mymc::Texture> texture,
         //         std::function<void(float)> update);
+        [[nodiscard]] std::shared_ptr<mymc::Mesh> mesh() const { return m_mesh; }
+        [[nodiscard]] std::shared_ptr<mymc::Material> material() const { return m_material; }
+        [[nodiscard]] std::array<std::shared_ptr<mymc::Texture>, 6> textures() const { return m_textures; }
 
     private:
         std::uint64_t m_id = 0;                                        // 唯一id
