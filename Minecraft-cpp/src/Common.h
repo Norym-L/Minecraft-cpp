@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include <functional>
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 
@@ -34,5 +35,24 @@ namespace mymc
         Texture* texture = nullptr; ///< 批次使用的贴图
         uint32_t index_count = 0;   ///< 批次的索引数量
     };
+
+    /// 区块坐标
+    struct ChunkPos
+    {
+        int x, z;
+
+        bool operator==(const ChunkPos &other) const
+        {
+            return x == other.x && z == other.z;
+        }
+    };
 }
 
+template<>
+struct std::hash<mymc::ChunkPos>
+{
+    size_t operator()(const mymc::ChunkPos &pos) const noexcept
+    {
+        return pos.x ^ (pos.z << 1);
+    }
+};
