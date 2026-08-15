@@ -11,7 +11,7 @@ namespace entity
 
     void PlayerControlComponent::update(float delta_time)
     {
-        const auto &input_manager = mymc::Core::getInstance().getInputManager();
+        const auto &input_manager = mymc::Core::GetInstance().getInputManager();
         auto rotation = m_owner->getRotation();
 
 
