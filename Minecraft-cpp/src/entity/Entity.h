@@ -19,7 +19,7 @@ namespace entity
 
 	class Entity
 	{
-		friend class mymc::EntityManager;
+		friend class EntityManager;
 	public:
 		Entity(std::uint64_t id, std::string name);
 
