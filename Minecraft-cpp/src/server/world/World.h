@@ -7,16 +7,16 @@
 
 namespace server
 {
-    class World
-    {
-    public:
-        void init();
+class World
+{
+public:
+    void init();
 
-        void render() const;
+    void render() const;
 
-    private:
-        std::unordered_map<mymc::ChunkPos, std::unique_ptr<Chunk> > m_worldMap;
-    };
+private:
+    std::unordered_map<mymc::ChunkPos, std::unique_ptr<Chunk> > m_worldMap;
+};
 } // server
 
 #endif //MINECRAFT_CPP_WORLD_H

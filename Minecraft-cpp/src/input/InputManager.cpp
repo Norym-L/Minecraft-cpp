@@ -2,184 +2,184 @@
 
 namespace mymc
 {
-    void InputManager::setKeyPressed(const int key, const bool pressed)
+void InputManager::setKeyPressed(const int key, const bool pressed)
+{
+    if (key < 0 || key >= static_cast<int>(m_keys.size()))
     {
-        if (key < 0 || key >= static_cast<int>(m_keys.size()))
-        {
-            return;
-        }
-
-        m_keys[key] = pressed;
+        return;
     }
 
-    bool InputManager::isKeyPressed(const int key) const
-    {
-        if (key < 0 || key >= static_cast<int>(m_keys.size()))
-        {
-            return false;
-        }
+    m_keys[key] = pressed;
+}
 
-        return m_keys[key];
+bool InputManager::isKeyPressed(const int key) const
+{
+    if (key < 0 || key >= static_cast<int>(m_keys.size()))
+    {
+        return false;
     }
 
-    void InputManager::setKeyWasPressed(const int key, const bool pressed)
-    {
-        if (key < 0 || key >= static_cast<int>(m_KeyPressed.size()))
-        {
-            return;
-        }
+    return m_keys[key];
+}
 
-        m_KeyPressed[key] = pressed;
+void InputManager::setKeyWasPressed(const int key, const bool pressed)
+{
+    if (key < 0 || key >= static_cast<int>(m_KeyPressed.size()))
+    {
+        return;
     }
 
-    bool InputManager::wasKeyPressed(const int key) const
-    {
-        if (key < 0 || key >= static_cast<int>(m_KeyPressed.size()))
-        {
-            return false;
-        }
+    m_KeyPressed[key] = pressed;
+}
 
-        return m_KeyPressed[key];
+bool InputManager::wasKeyPressed(const int key) const
+{
+    if (key < 0 || key >= static_cast<int>(m_KeyPressed.size()))
+    {
+        return false;
     }
 
-    void InputManager::setKeyWasReleased(const int key, const bool Released)
-    {
-        if (key < 0 || key >= static_cast<int>(m_KeyReleased.size()))
-        {
-            return;
-        }
+    return m_KeyPressed[key];
+}
 
-        m_KeyReleased[key] = Released;
+void InputManager::setKeyWasReleased(const int key, const bool Released)
+{
+    if (key < 0 || key >= static_cast<int>(m_KeyReleased.size()))
+    {
+        return;
     }
 
-    bool InputManager::wasKeyReleased(const int key) const
-    {
-        if (key < 0 || key >= static_cast<int>(m_KeyReleased.size()))
-        {
-            return false;
-        }
+    m_KeyReleased[key] = Released;
+}
 
-        return m_KeyReleased[key];
+bool InputManager::wasKeyReleased(const int key) const
+{
+    if (key < 0 || key >= static_cast<int>(m_KeyReleased.size()))
+    {
+        return false;
     }
 
-    void InputManager::setMouseButtonPressed(const int button, const bool pressed)
-    {
-        if (button < 0 || button >= static_cast<int>(m_mouseKeys.size()))
-        {
-            return;
-        }
+    return m_KeyReleased[key];
+}
 
-        m_mouseKeys[button] = pressed;
+void InputManager::setMouseButtonPressed(const int button, const bool pressed)
+{
+    if (button < 0 || button >= static_cast<int>(m_mouseKeys.size()))
+    {
+        return;
     }
 
-    bool InputManager::isMouseButtonPressed(const int button) const
-    {
-        if (button < 0 || button >= static_cast<int>(m_mouseKeys.size()))
-        {
-            return false;
-        }
+    m_mouseKeys[button] = pressed;
+}
 
-        return m_mouseKeys[button];
+bool InputManager::isMouseButtonPressed(const int button) const
+{
+    if (button < 0 || button >= static_cast<int>(m_mouseKeys.size()))
+    {
+        return false;
     }
 
-    void InputManager::setMouseButtonWasPressed(const int button, const bool pressed)
-    {
-        if (button < 0 || button >= static_cast<int>(m_mouseKeysPressed.size()))
-        {
-            return;
-        }
+    return m_mouseKeys[button];
+}
 
-        m_mouseKeysPressed[button] = pressed;
+void InputManager::setMouseButtonWasPressed(const int button, const bool pressed)
+{
+    if (button < 0 || button >= static_cast<int>(m_mouseKeysPressed.size()))
+    {
+        return;
     }
 
-    bool InputManager::wasMouseButtonPressed(const int button) const
-    {
-        if (button < 0 || button >= static_cast<int>(m_mouseKeysPressed.size()))
-        {
-            return false;
-        }
+    m_mouseKeysPressed[button] = pressed;
+}
 
-        return m_mouseKeysPressed[button];
+bool InputManager::wasMouseButtonPressed(const int button) const
+{
+    if (button < 0 || button >= static_cast<int>(m_mouseKeysPressed.size()))
+    {
+        return false;
     }
 
-    void InputManager::setMouseButtonWasReleased(const int button, const bool Released)
-    {
-        if (button < 0 || button >= static_cast<int>(m_mouseKeysReleased.size()))
-        {
-            return;
-        }
+    return m_mouseKeysPressed[button];
+}
 
-        m_mouseKeysReleased[button] = Released;
+void InputManager::setMouseButtonWasReleased(const int button, const bool Released)
+{
+    if (button < 0 || button >= static_cast<int>(m_mouseKeysReleased.size()))
+    {
+        return;
     }
 
-    bool InputManager::wasMouseButtonReleased(const int button) const
-    {
-        if (button < 0 || button >= static_cast<int>(m_mouseKeysReleased.size()))
-        {
-            return false;
-        }
+    m_mouseKeysReleased[button] = Released;
+}
 
-        return m_mouseKeysReleased[button];
+bool InputManager::wasMouseButtonReleased(const int button) const
+{
+    if (button < 0 || button >= static_cast<int>(m_mouseKeysReleased.size()))
+    {
+        return false;
     }
 
-    void InputManager::setMousePositionOld(const glm::vec2 &pos)
-    {
-        m_mousePositionOld = pos;
-    }
+    return m_mouseKeysReleased[button];
+}
 
-    const glm::vec2 &InputManager::getMousePositionOld() const
-    {
-        return m_mousePositionOld;
-    }
+void InputManager::setMousePositionOld(const glm::vec2 &pos)
+{
+    m_mousePositionOld = pos;
+}
 
-    void InputManager::setMousePositionCurrent(const glm::vec2 &pos)
-    {
-        m_mousePositionCurrent = pos;
-    }
+const glm::vec2 &InputManager::getMousePositionOld() const
+{
+    return m_mousePositionOld;
+}
 
-    const glm::vec2 &InputManager::getMousePositionCurrent() const
-    {
-        return m_mousePositionCurrent;
-    }
+void InputManager::setMousePositionCurrent(const glm::vec2 &pos)
+{
+    m_mousePositionCurrent = pos;
+}
 
-    void InputManager::setMousePositionChanged(const bool changed)
-    {
-        m_mousePositionChanged = changed;
-    }
+const glm::vec2 &InputManager::getMousePositionCurrent() const
+{
+    return m_mousePositionCurrent;
+}
 
-    bool InputManager::isMousePositionChanged() const
-    {
-        return m_mousePositionChanged;
-    }
+void InputManager::setMousePositionChanged(const bool changed)
+{
+    m_mousePositionChanged = changed;
+}
 
-    bool InputManager::isMousePositionChangedEventEnable() const
-    {
-        return m_mousePositionChangedEventEnable;
-    }
+bool InputManager::isMousePositionChanged() const
+{
+    return m_mousePositionChanged;
+}
 
-    void InputManager::setMousePositionChangedEventEnable(const bool mouse_position_changed_event_enable)
-    {
-        m_mousePositionChangedEventEnable = mouse_position_changed_event_enable;
-    }
+bool InputManager::isMousePositionChangedEventEnable() const
+{
+    return m_mousePositionChangedEventEnable;
+}
 
-    void InputManager::clearStates()
+void InputManager::setMousePositionChangedEventEnable(const bool mouse_position_changed_event_enable)
+{
+    m_mousePositionChangedEventEnable = mouse_position_changed_event_enable;
+}
+
+void InputManager::clearStates()
+{
+    setMousePositionChanged(false);
+    for (bool &i: m_KeyPressed)
     {
-        setMousePositionChanged(false);
-        for (bool &i: m_KeyPressed)
-        {
-            i = false;
-        }
-        for (bool &i: m_KeyReleased)
-        {
-            i = false;
-        }
-        for (bool &i: m_mouseKeysPressed)
-        {
-            i = false;
-        }
-        for (bool &i: m_mouseKeysReleased)
-        {
-            i = false;
-        }
+        i = false;
     }
+    for (bool &i: m_KeyReleased)
+    {
+        i = false;
+    }
+    for (bool &i: m_mouseKeysPressed)
+    {
+        i = false;
+    }
+    for (bool &i: m_mouseKeysReleased)
+    {
+        i = false;
+    }
+}
 } // mymc

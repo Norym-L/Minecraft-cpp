@@ -4,13 +4,13 @@
 
 namespace entity
 {
-	class Player : public Entity
-	{
-	public:
-		Player(std::uint64_t id, std::string name);
+class Player : public Entity
+{
+public:
+    Player(std::uint64_t id, std::string name);
 
-		void update(float delta_time) override;
+    void update(float delta_time) override;
 
-	private:
-	};
+private:
+};
 }

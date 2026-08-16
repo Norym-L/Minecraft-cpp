@@ -7,15 +7,15 @@
 
 namespace entity
 {
-	Player::Player(const std::uint64_t id, std::string name)
-		: Entity(id, std::move(name))
-	{
-		addComponent<CameraComponent>();
-		addComponent<PlayerControlComponent>();
-	}
+Player::Player(const std::uint64_t id, std::string name)
+    : Entity(id, std::move(name))
+{
+    addComponent<CameraComponent>();
+    addComponent<PlayerControlComponent>();
+}
 
-	void Player::update(const float delta_time)
-	{
-		Entity::update(delta_time);
-	}
+void Player::update(const float delta_time)
+{
+    Entity::update(delta_time);
+}
 }
