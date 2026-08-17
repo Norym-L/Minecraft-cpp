@@ -36,7 +36,7 @@ void RenderQueue::submit(const RenderCommandUI &command)
     m_commandsUI.push_back(command);
 }
 
-void RenderQueue::draw(GraphicsAPI &graphicsAPI, const CameraData &camera_data)
+void RenderQueue::draw(GraphicsAPI &graphicsAPI, const CameraData &camera_data) //TODO 效率太低 ：把相同的方块合成一个大网格
 {
     // 3D
     for (auto &[mesh, material, model_matrix]: m_commands)
@@ -54,7 +54,6 @@ void RenderQueue::draw(GraphicsAPI &graphicsAPI, const CameraData &camera_data)
         //  临时光照
         shader_program->setUniform("uLight.color", glm::vec3(1.0f));
         shader_program->setUniform("uLight.direction", glm::vec3(-0.5f, -1.0f, -0.3f));
-        shader_program->setUniform("uUseTexture", 0);
 
         shader_program->setUniform("uModel", model_matrix);
         shader_program->setUniform("uView", camera_data.view_matrix);

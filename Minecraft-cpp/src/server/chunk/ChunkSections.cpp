@@ -1,5 +1,7 @@
 #include "ChunkSections.h"
 
+#include <algorithm>
+
 #include "core/Core.h"
 #include "render/RenderQueue.h"
 
@@ -24,17 +26,17 @@ void ChunkSections::createRenderBuf(const int x_offset, const int y_offset, cons
 
     // 返回需要被渲染的面 x- x+ y- y+ z- z+
     auto needToBeRender = [this](const int x, const int y, const int z) -> std::array<bool, 6>
-    {
+        {
         std::array<bool, 6> result = {};
 
         if (x == 0 || getBlock(x - 1, y, z) == 0) result[0] = true;
-        if (x == 15|| getBlock(x + 1, y, z) == 0) result[1] = true;
+        if (x == 15 || getBlock(x + 1, y, z) == 0) result[1] = true;
         if (y == 0 || getBlock(x, y - 1, z) == 0) result[2] = true;
-        if (y == 15|| getBlock(x, y + 1, z) == 0) result[3] = true;
+        if (y == 15 || getBlock(x, y + 1, z) == 0) result[3] = true;
         if (z == 0 || getBlock(x, y, z - 1) == 0) result[4] = true;
-        if (z == 15|| getBlock(x, y, z + 1) == 0) result[5] = true;
+        if (z == 15 || getBlock(x, y, z + 1) == 0) result[5] = true;
         return result;
-    };
+        };
 
     for (int index = 0; index < m_blockIDs.size(); ++index)
     {
@@ -49,17 +51,26 @@ void ChunkSections::createRenderBuf(const int x_offset, const int y_offset, cons
         }
         auto block = mymc::Core::GetInstance().getBlockManager().getBlock(block_id);
 
-
         auto render_face = needToBeRender(x, y, z);
+
+        // 去除无需渲染
+        if (std::ranges::all_of(
+            render_face,
+            [](const bool flg) { return !flg; }))
+        {
+            continue;
+        }
+
+        // TODO 把相同方块的网格合成，材质合成
 
         auto mesh = mymc::Mesh::CreateBlockByFace(render_face);
         m_meshes.push_back(mesh); // 防止空悬指针
 
         mymc::RenderCommand command = {
-            .mesh         = mesh.get(),
-            .material     = block.material().get(),
+            .mesh = mesh.get(),
+            .material = block.material().get(),
             .model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(x_offset + x, y_offset + y, z_offset + z))
-        };
+            };
 
         m_renderCommands3D.push_back(command);
     }
