@@ -4,7 +4,10 @@
 
 #include <cstdint>
 #include <array>
+#include <memory>
 #include <vector>
+
+#include "render/Mesh.h"
 
 namespace mymc
 {
@@ -83,6 +86,7 @@ private:
     bool m_wasChanged = false;                               // 区块是否发生改变
     std::array<std::uint64_t, 16 * 16 * 16> m_blockIDs = {}; // 存储方块的唯一id
     std::vector<mymc::RenderCommand> m_renderCommands3D;     // 渲染队列
+    std::vector<std::shared_ptr<mymc::Mesh>> m_meshes;       // 网格缓存
 };
 } // server
 

@@ -85,15 +85,13 @@ public:
      * @brief 执行所有队列中的渲染命令并清空队列。
      * @param graphicsAPI 图形 API
      * @param camera_data 相机数据
-     */
-    void draw(
-        GraphicsAPI &graphicsAPI,
-        const CameraData &camera_data); // TODO 增加一个线框渲染模式
+     */ //TODO 渲染效率优化
+    void draw(GraphicsAPI &graphicsAPI, const CameraData &camera_data);
 
 private:
-    std::vector<RenderCommand> m_commands;     ///< 3D 渲染命令队列
-    std::vector<RenderCommand2D> m_commands2D; ///< 2D 渲染命令队列
-    std::vector<RenderCommandUI> m_commandsUI; ///< UI 渲染命令队列
-    std::shared_ptr<Mesh> m_mesh2D;            ///< 2D 绘制复用的平面网格
+    std::vector<RenderCommand> m_commands;     // 3D 渲染命令队列
+    std::vector<RenderCommand2D> m_commands2D; // 2D 渲染命令队列
+    std::vector<RenderCommandUI> m_commandsUI; // UI 渲染命令队列
+    std::shared_ptr<Mesh> m_mesh2D;            // 2D 绘制复用的平面网格
 };
 }

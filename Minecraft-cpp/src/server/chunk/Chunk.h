@@ -35,7 +35,7 @@ public:
     void setBlock(const int x, const int y, const int z, const std::uint64_t block_id)
     {
         m_wasChanged = true;
-        m_sections[y / 16].setBlock(x, y, z, block_id);
+        m_sections[y / 16].setBlock(x, y % 16, z, block_id);
     }
 
     /**

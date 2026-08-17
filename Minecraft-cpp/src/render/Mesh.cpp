@@ -1,5 +1,6 @@
 ﻿#include "Mesh.h"
 
+#include <array>
 #include <cmath>
 #include <memory>
 #include <vector>
@@ -216,6 +217,115 @@ std::shared_ptr<Mesh> Mesh::CreateBox(const glm::vec3 &extents)
         .offset = sizeof(float) * 8
     });
     vertexLayout.stride = sizeof(float) * 11;
+
+    return std::make_shared<Mesh>(vertexLayout, vertices, indices);
+}
+
+std::shared_ptr<Mesh> Mesh::CreateBlockByFace(const std::array<bool, 6> &faces)
+{
+    constexpr auto extents = glm::vec3(1.0f);
+    constexpr glm::vec3 half = extents * 0.5f;
+
+    // 每面4个顶点，每个顶点11个float（3位置+3颜色+2UV+3法线）
+    static const std::vector<float> vertices_base = {
+        half.x, half.y, half.z, 1.0f, 0.0f, 0.0f, extents.x, extents.y, 0.0f, 0.0f, 1.0f, // 正面
+        -half.x, half.y, half.z, 0.0f, 1.0f, 0.0f, 0.0f, extents.y, 0.0f, 0.0f, 1.0f,
+        -half.x, -half.y, half.z, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        half.x, -half.y, half.z, 1.0f, 1.0f, 0.0f, extents.x, 0.0f, 0.0f, 0.0f, 1.0f,
+
+        half.x, half.y, -half.z, 1.0f, 0.0f, 0.0f, extents.x, extents.z, 0.0f, 1.0f, 0.0f, // 顶面
+        -half.x, half.y, -half.z, 0.0f, 1.0f, 0.0f, 0.0f, extents.z, 0.0f, 1.0f, 0.0f,
+        -half.x, half.y, half.z, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        half.x, half.y, half.z, 1.0f, 1.0f, 0.0f, extents.x, 0.0f, 0.0f, 1.0f, 0.0f,
+
+        half.x, half.y, -half.z, 1.0f, 0.0f, 0.0f, extents.z, extents.y, 1.0f, 0.0f, 0.0f, // 右面
+        half.x, half.y, half.z, 0.0f, 1.0f, 0.0f, 0.0f, extents.y, 1.0f, 0.0f, 0.0f,
+        half.x, -half.y, half.z, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        half.x, -half.y, -half.z, 1.0f, 1.0f, 0.0f, extents.z, 0.0f, 1.0f, 0.0f, 0.0f,
+
+        -half.x, half.y, half.z, 1.0f, 0.0f, 0.0f, extents.z, extents.y, -1.0f, 0.0f, 0.0f, // 左面
+        -half.x, half.y, -half.z, 0.0f, 1.0f, 0.0f, 0.0f, extents.y, -1.0f, 0.0f, 0.0f,
+        -half.x, -half.y, -half.z, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
+        -half.x, -half.y, half.z, 1.0f, 1.0f, 0.0f, extents.z, 0.0f, -1.0f, 0.0f, 0.0f,
+
+        half.x, -half.y, half.z, 1.0f, 0.0f, 0.0f, extents.x, extents.z, 0.0f, -1.0f, 0.0f, // 底面
+        -half.x, -half.y, half.z, 0.0f, 1.0f, 0.0f, 0.0f, extents.z, 0.0f, -1.0f, 0.0f,
+        -half.x, -half.y, -half.z, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f,
+        half.x, -half.y, -half.z, 1.0f, 1.0f, 0.0f, extents.x, 0.0f, 0.0f, -1.0f, 0.0f,
+
+        -half.x, half.y, -half.z, 1.0f, 0.0f, 0.0f, extents.x, extents.y, 0.0f, 0.0f, -1.0f, // 后面
+        half.x, half.y, -half.z, 0.0f, 1.0f, 0.0f, 0.0f, extents.y, 0.0f, 0.0f, -1.0f,
+        half.x, -half.y, -half.z, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
+        -half.x, -half.y, -half.z, 1.0f, 1.0f, 0.0f, extents.x, 0.0f, 0.0f, 0.0f, -1.0f,
+    };
+
+    constexpr int FACE_VERTEX_COUNT = 4;
+    constexpr int FLOAT_PER_VERTEX = 11;
+    constexpr int FLOAT_PER_FACE = FACE_VERTEX_COUNT * FLOAT_PER_VERTEX;
+
+    // 面顺序: x-, x+, y-, y+, z-, z+
+    static const int faceOffsets[6] = {3, 2, 4, 1, 5, 0};
+
+    std::vector<float> vertices;
+    vertices.reserve(6 * FLOAT_PER_FACE);  // 最多6个面
+
+    // 按照 faces 数组顺序添加面
+    for (int i = 0; i < 6; ++i)
+    {
+        if (faces[i])
+        {
+            const int start = faceOffsets[i] * FLOAT_PER_FACE;
+            const int end = start + FLOAT_PER_FACE;
+            vertices.insert(vertices.end(),
+                          vertices_base.begin() + start,
+                          vertices_base.begin() + end);
+        }
+    }
+
+    vertices.shrink_to_fit();
+
+    // 构造索引
+    const int vertexCount = static_cast<int>(vertices.size() / FLOAT_PER_VERTEX);
+    std::vector<unsigned int> indices;
+    indices.reserve(vertexCount * 6);  // 每个顶点6个索引（2个三角形）
+
+    for (int i = 0; i < vertexCount; i += 4)
+    {
+        // 每个面的两个三角形
+        indices.push_back(i + 0);
+        indices.push_back(i + 1);
+        indices.push_back(i + 2);
+        indices.push_back(i + 0);
+        indices.push_back(i + 2);
+        indices.push_back(i + 3);
+    }
+
+    VertexLayout vertexLayout;
+    vertexLayout.elements.push_back({
+        .index = VertexElement::PositionIndex,
+        .size = 3,
+        .type = GL_FLOAT,
+        .offset = 0
+    });
+    vertexLayout.elements.push_back({
+        .index = VertexElement::ColorIndex,
+        .size = 3,
+        .type = GL_FLOAT,
+        .offset = sizeof(float) * 3
+    });
+    vertexLayout.elements.push_back({
+        .index = VertexElement::UVIndex,
+        .size = 2,
+        .type = GL_FLOAT,
+        .offset = sizeof(float) * 6
+    });
+    vertexLayout.elements.push_back({
+        .index = VertexElement::NormalIndex,
+        .size = 3,
+        .type = GL_FLOAT,
+        .offset = sizeof(float) * 8
+    });
+    vertexLayout.stride = sizeof(float) * FLOAT_PER_VERTEX;
 
     return std::make_shared<Mesh>(vertexLayout, vertices, indices);
 }

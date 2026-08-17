@@ -10,9 +10,10 @@ namespace server
 void World::init()
 {
     auto chunk = std::make_unique<Chunk>();
-    chunk->setBlock(1, 1, 1, 1);
-    chunk->setBlock(1, 3, 1, 1);
-    chunk->setBlock(8, 2, 3, 1);
+    chunk->m_sections[0].fill(1);
+    chunk->setBlock(1, 1, 1, 0);
+    chunk->setBlock(1, 3, 1, 0);
+    chunk->setBlock(8, 2, 3, 0);
     m_worldMap[mymc::ChunkPos{.x = 0, .z = 0}] = std::move(chunk);
 }
 

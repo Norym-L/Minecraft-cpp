@@ -18,7 +18,7 @@ void RenderQueue::submit(const RenderCommand &command)
     m_commands.push_back(command);
 }
 
-void RenderQueue::submit(const std::vector<RenderCommand>& commands)
+void RenderQueue::submit(const std::vector<RenderCommand> &commands)
 {
     for (auto command: commands)
     {
@@ -36,9 +36,7 @@ void RenderQueue::submit(const RenderCommandUI &command)
     m_commandsUI.push_back(command);
 }
 
-void RenderQueue::draw(
-    GraphicsAPI &     graphicsAPI,
-    const CameraData &camera_data)
+void RenderQueue::draw(GraphicsAPI &graphicsAPI, const CameraData &camera_data)
 {
     // 3D
     for (auto &[mesh, material, model_matrix]: m_commands)

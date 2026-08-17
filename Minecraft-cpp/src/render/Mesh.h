@@ -73,6 +73,13 @@ public:
     static std::shared_ptr<Mesh> CreateBox(const glm::vec3 &extents = glm::vec3(1.0f));
 
     /**
+     * 创建立方体网格
+     * @param faces 需要渲染的面的数组
+     * @return std::shared_ptr<Mesh> 立方体网格对象的共享指针
+     */
+    static std::shared_ptr<Mesh> CreateBlockByFace(const std::array<bool, 6> &faces);
+
+    /**
          * @brief 创建球体。
          * @param radius 半径
          * @param sectors 经度分段数
@@ -89,11 +96,11 @@ public:
 
 private:
     VertexLayout m_vertexLayout; // 顶点布局
-    GLuint       m_VBO = 0;      // 顶点缓冲区对象句柄
-    GLuint       m_EBO = 0;      // 索引缓冲区对象句柄
-    GLuint       m_VAO = 0;      // 顶点数组对象句柄
+    GLuint m_VBO = 0;            // 顶点缓冲区对象句柄
+    GLuint m_EBO = 0;            // 索引缓冲区对象句柄
+    GLuint m_VAO = 0;            // 顶点数组对象句柄
 
     size_t m_vertexCount = 0; // 顶点数量
-    size_t m_indexCount  = 0; // 索引数量
+    size_t m_indexCount = 0;  // 索引数量
 };
 } // namespace mymc

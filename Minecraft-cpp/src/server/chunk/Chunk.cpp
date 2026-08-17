@@ -58,6 +58,7 @@ void Chunk::createRenderBuf()
         return;
     }
 
+    m_renderCommands3D.clear();
     m_wasChanged = false;
 
     for (int index = 0; index < m_sections.size(); ++index)
