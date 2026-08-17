@@ -36,7 +36,7 @@ Mesh::Mesh(const VertexLayout &layout, const std::vector<float> &vertices, const
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     m_vertexCount = vertices.size() * sizeof(float) / m_vertexLayout.stride;
-    m_indexCount  = indices.size();
+    m_indexCount = indices.size();
 }
 
 Mesh::Mesh(const VertexLayout &layout, const std::vector<float> &vertices)
@@ -151,10 +151,9 @@ void Mesh::updateDynamic(const std::vector<float> &vertices, const std::vector<u
 
 std::shared_ptr<Mesh> Mesh::CreateBox(const glm::vec3 &extents)
 {
-    const glm::vec3 half     = extents * 0.5f;
-    std::vector     vertices = {
-        // positions               // colors		   // UV
-        // //法线
+    const glm::vec3 half = extents * 0.5f;
+    std::vector vertices = {
+        // positions               // colors		   // UV            //法线
         half.x, half.y, half.z, 1.0f, 0.0f, 0.0f, extents.x, extents.y, 0.0f, 0.0f, 1.0f, // 正面
         -half.x, half.y, half.z, 0.0f, 1.0f, 0.0f, 0.0f, extents.y, 0.0f, 0.0f, 1.0f,
         -half.x, -half.y, half.z, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
@@ -218,7 +217,7 @@ std::shared_ptr<Mesh> Mesh::CreateBox(const glm::vec3 &extents)
     });
     vertexLayout.stride = sizeof(float) * 11;
 
-    return std::make_shared < Mesh > (vertexLayout, vertices, indices);
+    return std::make_shared<Mesh>(vertexLayout, vertices, indices);
 }
 
 std::shared_ptr<Mesh> Mesh::CreateSphere(const float radius, const int sectors, const int stacks)
@@ -226,10 +225,10 @@ std::shared_ptr<Mesh> Mesh::CreateSphere(const float radius, const int sectors, 
     std::vector<float> vertices((stacks + 1) * (sectors + 1) * 8);
     for (int i = 0; i <= stacks; ++i)
     {
-        constexpr float PI          = 3.14159265358979323846f;
-        const float     stack_angle = PI / 2.0f - static_cast<float>(i) * (PI / static_cast<float>(stacks));
-        const float     xy          = radius * cosf(stack_angle);
-        const float     z           = radius * sinf(stack_angle);
+        constexpr float PI = 3.14159265358979323846f;
+        const float stack_angle = PI / 2.0f - static_cast<float>(i) * (PI / static_cast<float>(stacks));
+        const float xy = radius * cosf(stack_angle);
+        const float z = radius * sinf(stack_angle);
 
         for (int j = 0; j <= sectors; ++j)
         {
@@ -241,12 +240,12 @@ std::shared_ptr<Mesh> Mesh::CreateSphere(const float radius, const int sectors, 
             const size_t vertexStart = (i * (sectors + 1) + j) * 8;
 
             // 位置
-            vertices[vertexStart]     = x;
+            vertices[vertexStart] = x;
             vertices[vertexStart + 1] = y;
             vertices[vertexStart + 2] = z;
 
             // 法线（归一化位置向量）
-            const float lmymcth       = sqrtf(x * x + y * y + z * z);
+            const float lmymcth = sqrtf(x * x + y * y + z * z);
             vertices[vertexStart + 3] = x / lmymcth;
             vertices[vertexStart + 4] = y / lmymcth;
             vertices[vertexStart + 5] = z / lmymcth;
@@ -299,7 +298,7 @@ std::shared_ptr<Mesh> Mesh::CreateSphere(const float radius, const int sectors, 
     });
     vertexLayout.stride = sizeof(float) * 8;
 
-    auto result = std::make_shared < Mesh > (vertexLayout, vertices, indices);
+    auto result = std::make_shared<Mesh>(vertexLayout, vertices, indices);
 
     return result;
 }
@@ -331,7 +330,7 @@ std::shared_ptr<Mesh> Mesh::CreatePlane()
     });
     vertexLayout.stride = sizeof(float) * 2;
 
-    auto result = std::make_shared < Mesh > (vertexLayout, vertices, indices);
+    auto result = std::make_shared<Mesh>(vertexLayout, vertices, indices);
 
     return result;
 }

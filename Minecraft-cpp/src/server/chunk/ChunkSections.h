@@ -1,14 +1,26 @@
 // 区块的垂直切片 16*16*16
 #ifndef MINECRAFT_CPP_CHUNKSECTIONS_H
 #define MINECRAFT_CPP_CHUNKSECTIONS_H
+
 #include <cstdint>
 #include <array>
+#include <vector>
+
+namespace mymc
+{
+struct RenderCommand;
+}
 
 namespace server
 {
 class ChunkSections
 {
 public:
+    friend class Chunk;
+
+public:
+    ChunkSections() = default;
+
     /**
          * 设置方块
          * @param x 0~15
@@ -19,6 +31,7 @@ public:
     void setBlock(const int x, const int y, const int z, const std::uint64_t block_id)
     {
         m_blockIDs[GetBlockIndex(x, y, z)] = block_id;
+        m_wasChanged = true;
     }
 
     /**
@@ -40,9 +53,18 @@ public:
     void fill(std::uint64_t block_id);
 
     /**
-         * TODO 临时渲染
-         */
-    void render(int x_offset, int y_offset, int z_offset) const;
+     * 建立渲染缓存
+     * @param x_offset x偏移量
+     * @param y_offset y偏移量
+     * @param z_offset z偏移量
+     */
+    void createRenderBuf(int x_offset, int y_offset, int z_offset);
+
+    /**
+     * 区块是否发生变化
+     * @return true 改变 false 没有改变
+     */
+    [[nodiscard]] bool wasChanged() const { return m_wasChanged; }
 
 private:
     /**
@@ -58,7 +80,9 @@ private:
     }
 
 private:
+    bool m_wasChanged = false;                               // 区块是否发生改变
     std::array<std::uint64_t, 16 * 16 * 16> m_blockIDs = {}; // 存储方块的唯一id
+    std::vector<mymc::RenderCommand> m_renderCommands3D;     // 渲染队列
 };
 } // server
 

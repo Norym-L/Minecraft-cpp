@@ -18,6 +18,14 @@ void RenderQueue::submit(const RenderCommand &command)
     m_commands.push_back(command);
 }
 
+void RenderQueue::submit(const std::vector<RenderCommand>& commands)
+{
+    for (auto command: commands)
+    {
+        m_commands.push_back(command);
+    }
+}
+
 void RenderQueue::submit(const RenderCommand2D &command)
 {
     m_commands2D.push_back(command);

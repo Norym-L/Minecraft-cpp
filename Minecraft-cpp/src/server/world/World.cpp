@@ -1,6 +1,9 @@
 #include "World.h"
+#include "render/RenderQueue.h"
 
 #include <ranges>
+
+#include "core/Core.h"
 
 namespace server
 {
@@ -17,7 +20,8 @@ void World::render() const
 {
     for (const auto &val: m_worldMap | std::views::values)
     {
-        val.get()->render();
+        val.get()->createRenderBuf();
+        mymc::Core::GetInstance().getRanderQueue().submit(val.get()->m_renderCommands3D);
     }
 }
 } // server
