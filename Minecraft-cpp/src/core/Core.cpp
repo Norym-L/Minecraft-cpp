@@ -121,6 +121,12 @@ bool Core::init(const int width, const int height, const std::string &title)
 
     setCursorEnabled(false); // 默认禁用光标
 
+    // 禁止opengl线性插值
+    // 放大时（图片小于显示区域）：用最近邻，保留硬边缘
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // 缩小时（图片大于显示区域）：用最近邻，防止模糊
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
     return true;
 }
 
@@ -152,10 +158,14 @@ void Core::run()
         {
             setCursorEnabled(!m_cursorEnabled);
         }
+        if (m_inputManager.wasKeyReleased(GLFW_KEY_F1))
+        {
+            changeRenderMode(!m_renderMode);
+        }
 
-        auto       now        = std::chrono::steady_clock::now();
+        auto now = std::chrono::steady_clock::now();
         const auto delta_time = std::chrono::duration<float>(now - m_lastTime).count();
-        m_lastTime            = now;
+        m_lastTime = now;
 
         // 测试开始
 
@@ -163,7 +173,10 @@ void Core::run()
         m_entityManager.update(delta_time);
         // 更新方块
         m_blockManager.update(delta_time);
-        m_world->render(); // TODO 每帧更新会造成严重渲染卡顿问题
+
+        // 世界渲染
+        m_world->render();
+
         // 测试结束
 
         CameraData camera_data{};
@@ -180,8 +193,10 @@ void Core::run()
 
         m_inputManager.clearStates(); // 每帧清理按键状态
         GraphicsAPI::ClearBuffers();  // 每帧清屏
-        m_renderQueue.draw(m_graphicsAPI, camera_data);
-        glfwSwapBuffers(m_window); // ★ 关键：交换缓冲上屏
+
+        m_renderQueue.draw(m_graphicsAPI, camera_data); //TODO 这里57.58ms
+
+        glfwSwapBuffers(m_window); // 交换缓冲上屏
     }
 }
 
@@ -190,6 +205,21 @@ void Core::setCursorEnabled(const bool enabled)
     glfwSetInputMode(m_window, GLFW_CURSOR, enabled ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
     m_cursorEnabled = enabled;
     m_inputManager.setMousePositionChangedEventEnable(!enabled);
+}
+
+void Core::changeRenderMode(const bool enabled)
+{
+    m_renderMode = enabled;
+    if (enabled == false)
+    {
+        glDisable(GL_DEPTH_TEST);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glEnable(GL_DEPTH_TEST);
+    }
 }
 
 GraphicsAPI &Core::getGraphicsAPI()
@@ -215,5 +245,15 @@ block::BlockManager &Core::getBlockManager()
 InputManager &Core::getInputManager()
 {
     return m_inputManager;
+}
+
+FileSystem &Core::getFileManager()
+{
+    return m_fileSystem;
+}
+
+TextureManager &Core::getTextureManager()
+{
+    return m_textureManager;
 }
 }

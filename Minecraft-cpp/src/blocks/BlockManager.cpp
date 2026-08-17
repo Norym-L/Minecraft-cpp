@@ -12,11 +12,14 @@ void BlockManager::init() // TODO 完善注册结构
 {
     registerBlock("Air", nullptr, nullptr, nullptr);
 
-    const auto mesh     = mymc::Mesh::CreateBox(glm::vec3(1.0f));
+    const auto mesh = mymc::Mesh::CreateBox();//TODO BlockManager::update里面无mesh会跳过
+
+    const auto texture = mymc::Texture::Load("mymc/block/stone.png");
     const auto material = std::make_shared<mymc::Material>();
     material->setShaderProgram(mymc::Core::GetInstance().getGraphicsAPI().getDefaultShaderProgram());
+    material->setParam("stone", texture); // TODO 默认着色器里面是baseColorTexture不是这里的名称
 
-    registerBlock("testBlovc", mesh, material, nullptr);
+    registerBlock("stone", mesh, material, texture);
 }
 
 BlockManager &BlockManager::GetInstance()

@@ -55,6 +55,13 @@ public:
     [[nodiscard]] int getHeight() const;
 
     /**
+     * 获取贴图
+     * @param path 贴图路径
+     * @return 贴图共享指针
+     */
+    static std::shared_ptr<Texture> Load(const std::string &path);
+
+    /**
          * @brief 将贴图配置为图集模式：关闭 mipmap、使用 CLAMP_TO_EDGE，避免字形渗色。
          */
     void configureForAtlas() const;
@@ -65,22 +72,29 @@ public:
     void configurePixelArt() const;
 
 private:
-    int    m_width       = 0; ///< 贴图宽度
-    int    m_height      = 0; ///< 贴图高度
-    int    m_numChannels = 0; ///< 通道数量
-    GLuint m_textureID   = 0; ///< OpenGL 纹理句柄
+    int m_width = 0;        ///< 贴图宽度
+    int m_height = 0;       ///< 贴图高度
+    int m_numChannels = 0;  ///< 通道数量
+    GLuint m_textureID = 0; ///< OpenGL 纹理句柄
 };
 
 /// @brief 贴图管理器，维护贴图缓存，避免同一路径重复加载。
 class TextureManager
 {
 public:
+    /**
+         * @brief 获取或加载贴图（带缓存）。
+         * @param path 图片路径
+         * @return std::shared_ptr<Texture> 贴图对象共享指针；加载失败返回 nullptr
+         */
+    std::shared_ptr<Texture> getOrLoadTexture(const std::string& path);
+
     /// @brief 清空贴图缓存（需在 GL 上下文销毁前调用）。
     void clear();
 
 private:
     /** @brief 从文件实际加载贴图（不经过缓存）。 */
-    std::shared_ptr<Texture> loadFromFile(const std::string &path);
+    static std::shared_ptr<Texture> LoadFromFile(const std::string &path) ;
 
 private:
     std::unordered_map<std::string, std::shared_ptr<Texture> > m_textures; ///< 贴图路径到贴图对象的缓存表

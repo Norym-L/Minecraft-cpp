@@ -7,6 +7,7 @@
 #include "GLFW/glfw3.h"
 #include "blocks/BlockManager.h"
 #include "entity/EntityManager.h"
+#include "io/FileSystem.h"
 #include "server/chunk/Chunk.h"
 #include "server/world/World.h"
 
@@ -52,6 +53,12 @@ public:
     void setCursorEnabled(bool enabled);
 
     /**
+     * 切换渲染模式
+     * @param enabled true 正常渲染模式 false 线框渲染模式
+     */
+    void changeRenderMode(bool enabled);
+
+    /**
      * 获取图形api
      * @return 图形api引用
      */
@@ -81,15 +88,30 @@ public:
      */
     InputManager &getInputManager();
 
+    /**
+     * 获取文件管理器
+     * @return 按键文件管理器引用
+     */
+    FileSystem &getFileManager();
+
+    /**
+     * 获取贴图管理器
+     * @return 贴图管理器引用
+     */
+    TextureManager &getTextureManager();
+
 private:
-    GLFWwindow *                          m_window = nullptr;      // 窗口指针
-    std::chrono::steady_clock::time_point m_lastTime;              // 上一帧时间点（用于计算 deltaTime）
-    bool                                  m_cursorEnabled = false; // 光标是否启用
-    GraphicsAPI                           m_graphicsAPI;           // 图形api
-    RenderQueue                           m_renderQueue;           // 渲染队列
-    InputManager                          m_inputManager;          // 按键输入管理器
-    entity::EntityManager                 m_entityManager;         // 实体管理器
-    block::BlockManager                   m_blockManager;          // 方块管理器
-    std::unique_ptr<server::World>        m_world;                 // 世界
+    GLFWwindow *m_window = nullptr;                   // 窗口指针
+    std::chrono::steady_clock::time_point m_lastTime; // 上一帧时间点（用于计算 deltaTime）
+    bool m_cursorEnabled = false;                     // 光标是否启用
+    bool m_renderMode = true;                         // 设置渲染模式 true正常 false线框
+    GraphicsAPI m_graphicsAPI;                        // 图形api
+    RenderQueue m_renderQueue;                        // 渲染队列
+    InputManager m_inputManager;                      // 按键输入管理器
+    entity::EntityManager m_entityManager;            // 实体管理器
+    block::BlockManager m_blockManager;               // 方块管理器
+    FileSystem m_fileSystem;        // 文件管理器
+    TextureManager m_textureManager;               // 贴图管理器
+    std::unique_ptr<server::World> m_world;           // 世界
 };
 }
