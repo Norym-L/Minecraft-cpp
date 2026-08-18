@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 
+#include "MeshBuilder.h"
 #include "graphics/GraphicsAPI.h"
 #include "graphics/VertexLayout.h"
 
@@ -13,6 +14,10 @@ namespace mymc
 Mesh::Mesh(const VertexLayout &layout, const std::vector<float> &vertices, const std::vector<uint32_t> &indices)
 {
     m_vertexLayout = layout;
+
+    // 保存 CPU 端副本（供合并使用）
+    m_verticesCPU = vertices;
+    m_indicesCPU = indices;
 
     m_VBO = GraphicsAPI::CreateVertexBuffer(vertices);
     m_EBO = GraphicsAPI::CreateIndexBuffer(indices);
@@ -26,7 +31,7 @@ Mesh::Mesh(const VertexLayout &layout, const std::vector<float> &vertices, const
     {
         glVertexAttribPointer(index, static_cast<GLint>(size), type, GL_FALSE,
                               static_cast<GLint>(m_vertexLayout.stride),
-                              reinterpret_cast<void *>(static_cast<uintptr_t>(offset)));
+                              reinterpret_cast<void*>(static_cast<uintptr_t>(offset)));
         glEnableVertexAttribArray(index);
     }
 
@@ -44,6 +49,9 @@ Mesh::Mesh(const VertexLayout &layout, const std::vector<float> &vertices)
 {
     m_vertexLayout = layout;
 
+    // 保存 CPU 端副本（供合并使用）
+    m_verticesCPU = vertices;
+
     m_VBO = GraphicsAPI::CreateVertexBuffer(vertices);
 
     glGenVertexArrays(1, &m_VAO);
@@ -55,7 +63,7 @@ Mesh::Mesh(const VertexLayout &layout, const std::vector<float> &vertices)
     {
         glVertexAttribPointer(index, static_cast<GLint>(size), type, GL_FALSE,
                               static_cast<GLint>(m_vertexLayout.stride),
-                              reinterpret_cast<void *>(static_cast<uintptr_t>(offset)));
+                              reinterpret_cast<void*>(static_cast<uintptr_t>(offset)));
         glEnableVertexAttribArray(index);
     }
 
@@ -112,7 +120,7 @@ void Mesh::DrawIndexedRange(const uint32_t start_index, const uint32_t index_cou
     glDrawElements(GL_TRIANGLES,
                    static_cast<GLsizei>(index_count),
                    GL_UNSIGNED_INT,
-                   reinterpret_cast<void *>(static_cast<size_t>(start_index) * sizeof(uint32_t)));
+                   reinterpret_cast<void*>(static_cast<size_t>(start_index) * sizeof(uint32_t)));
 }
 
 void Mesh::updateDynamic(const std::vector<float> &vertices)
@@ -184,7 +192,7 @@ std::shared_ptr<Mesh> Mesh::CreateBox(const glm::vec3 &extents)
         half.x, half.y, -half.z, 0.0f, 1.0f, 0.0f, 0.0f, extents.y, 0.0f, 0.0f, -1.0f,
         half.x, -half.y, -half.z, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
         -half.x, -half.y, -half.z, 1.0f, 1.0f, 0.0f, extents.x, 0.0f, 0.0f, 0.0f, -1.0f,
-    };
+        };
 
     std::vector<unsigned int> indices = {
         0, 1, 2, 0, 2, 3,       // 前面
@@ -193,29 +201,29 @@ std::shared_ptr<Mesh> Mesh::CreateBox(const glm::vec3 &extents)
         12, 13, 14, 12, 14, 15, // 左面
         16, 17, 18, 16, 18, 19, // 底面
         20, 21, 22, 20, 22, 23  // 后面
-    };
+        };
 
     VertexLayout vertexLayout;
 
     // 位置
     vertexLayout.elements.push_back({
         .index = VertexElement::PositionIndex, .size = 3, .type = GL_FLOAT, .offset = 0
-    });
+        });
     // 颜色
     vertexLayout.elements.push_back({
-        .index  = VertexElement::ColorIndex, .size = 3, .type = GL_FLOAT,
+        .index = VertexElement::ColorIndex, .size = 3, .type = GL_FLOAT,
         .offset = sizeof(float) * 3
-    });
+        });
     // UV
     vertexLayout.elements.push_back({
-        .index  = VertexElement::UVIndex, .size = 2, .type = GL_FLOAT,
+        .index = VertexElement::UVIndex, .size = 2, .type = GL_FLOAT,
         .offset = sizeof(float) * 6
-    });
+        });
     // 法线
     vertexLayout.elements.push_back({
-        .index  = VertexElement::NormalIndex, .size = 3, .type = GL_FLOAT,
+        .index = VertexElement::NormalIndex, .size = 3, .type = GL_FLOAT,
         .offset = sizeof(float) * 8
-    });
+        });
     vertexLayout.stride = sizeof(float) * 11;
 
     return std::make_shared<Mesh>(vertexLayout, vertices, indices);
@@ -257,7 +265,7 @@ std::shared_ptr<Mesh> Mesh::CreateBlockByFace(const std::array<bool, 6> &faces)
         half.x, half.y, -half.z, 0.0f, 1.0f, 0.0f, 0.0f, extents.y, 0.0f, 0.0f, -1.0f,
         half.x, -half.y, -half.z, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
         -half.x, -half.y, -half.z, 1.0f, 1.0f, 0.0f, extents.x, 0.0f, 0.0f, 0.0f, -1.0f,
-    };
+        };
 
     constexpr int FACE_VERTEX_COUNT = 4;
     constexpr int FLOAT_PER_VERTEX = 11;
@@ -267,7 +275,7 @@ std::shared_ptr<Mesh> Mesh::CreateBlockByFace(const std::array<bool, 6> &faces)
     static const int faceOffsets[6] = {3, 2, 4, 1, 5, 0};
 
     std::vector<float> vertices;
-    vertices.reserve(6 * FLOAT_PER_FACE);  // 最多6个面
+    vertices.reserve(6 * FLOAT_PER_FACE); // 最多6个面
 
     // 按照 faces 数组顺序添加面
     for (int i = 0; i < 6; ++i)
@@ -277,8 +285,8 @@ std::shared_ptr<Mesh> Mesh::CreateBlockByFace(const std::array<bool, 6> &faces)
             const int start = faceOffsets[i] * FLOAT_PER_FACE;
             const int end = start + FLOAT_PER_FACE;
             vertices.insert(vertices.end(),
-                          vertices_base.begin() + start,
-                          vertices_base.begin() + end);
+                            vertices_base.begin() + start,
+                            vertices_base.begin() + end);
         }
     }
 
@@ -287,7 +295,7 @@ std::shared_ptr<Mesh> Mesh::CreateBlockByFace(const std::array<bool, 6> &faces)
     // 构造索引
     const int vertexCount = static_cast<int>(vertices.size() / FLOAT_PER_VERTEX);
     std::vector<unsigned int> indices;
-    indices.reserve(vertexCount * 6);  // 每个顶点6个索引（2个三角形）
+    indices.reserve(vertexCount * 6); // 每个顶点6个索引（2个三角形）
 
     for (int i = 0; i < vertexCount; i += 4)
     {
@@ -306,30 +314,61 @@ std::shared_ptr<Mesh> Mesh::CreateBlockByFace(const std::array<bool, 6> &faces)
         .size = 3,
         .type = GL_FLOAT,
         .offset = 0
-    });
+        });
     vertexLayout.elements.push_back({
         .index = VertexElement::ColorIndex,
         .size = 3,
         .type = GL_FLOAT,
         .offset = sizeof(float) * 3
-    });
+        });
     vertexLayout.elements.push_back({
         .index = VertexElement::UVIndex,
         .size = 2,
         .type = GL_FLOAT,
         .offset = sizeof(float) * 6
-    });
+        });
     vertexLayout.elements.push_back({
         .index = VertexElement::NormalIndex,
         .size = 3,
         .type = GL_FLOAT,
         .offset = sizeof(float) * 8
-    });
+        });
     vertexLayout.stride = sizeof(float) * FLOAT_PER_VERTEX;
 
     return std::make_shared<Mesh>(vertexLayout, vertices, indices);
 }
 
+std::shared_ptr<Mesh> Mesh::MergeMeshes(
+    const std::vector<std::pair<std::shared_ptr<Mesh>, glm::vec3>>& meshes)
+{
+    MeshBuilder builder;
+    for (const auto& [mesh, offset] : meshes)
+    {
+        if (mesh)
+        {
+            builder.addMesh(mesh->getVertices(), mesh->getIndices(),
+                           mesh->getVertexLayout(), offset);
+        }
+    }
+    return builder.build();
+}
+
+std::shared_ptr<Mesh> Mesh::MergeMeshesDeduplicated(
+    const std::vector<std::pair<std::shared_ptr<Mesh>, glm::vec3>>& meshes)
+{
+    MeshBuilder builder;
+    for (const auto& [mesh, offset] : meshes)
+    {
+        if (mesh)
+        {
+            builder.addMeshDeduplicated(mesh->getVertices(), mesh->getIndices(),
+                                       mesh->getVertexLayout(), offset);
+        }
+    }
+    return builder.build();
+}
+
+#if 0
 std::shared_ptr<Mesh> Mesh::CreateSphere(const float radius, const int sectors, const int stacks)
 {
     std::vector<float> vertices((stacks + 1) * (sectors + 1) * 8);
@@ -395,53 +434,55 @@ std::shared_ptr<Mesh> Mesh::CreateSphere(const float radius, const int sectors, 
     // 位置
     vertexLayout.elements.push_back({
         .index = VertexElement::PositionIndex, .size = 3, .type = GL_FLOAT, .offset = 0
-    });
+        });
     // 法线
     vertexLayout.elements.push_back({
-        .index  = VertexElement::NormalIndex, .size = 3, .type = GL_FLOAT,
+        .index = VertexElement::NormalIndex, .size = 3, .type = GL_FLOAT,
         .offset = sizeof(float) * 3
-    });
+        });
     // UV
     vertexLayout.elements.push_back({
-        .index  = VertexElement::UVIndex, .size = 2, .type = GL_FLOAT,
+        .index = VertexElement::UVIndex, .size = 2, .type = GL_FLOAT,
         .offset = sizeof(float) * 6
-    });
+        });
     vertexLayout.stride = sizeof(float) * 8;
 
     auto result = std::make_shared<Mesh>(vertexLayout, vertices, indices);
 
     return result;
 }
+#endif
 
 std::shared_ptr<Mesh> Mesh::CreatePlane()
 {
     std::vector vertices =
-    {
+        {
         1.0f, 1.0f,
         0.0f, 1.0f,
         0.0f, 0.0f,
         1.0f, 0.0f
-    };
+        };
 
     std::vector<uint32_t> indices =
-    {
+        {
         0, 1, 2,
         0, 2, 3
-    };
+        };
 
     VertexLayout vertexLayout;
 
     //位置
     vertexLayout.elements.push_back({
-        .index  = VertexElement::PositionIndex,
-        .size   = 2,
-        .type   = GL_FLOAT,
+        .index = VertexElement::PositionIndex,
+        .size = 2,
+        .type = GL_FLOAT,
         .offset = 0
-    });
+        });
     vertexLayout.stride = sizeof(float) * 2;
 
     auto result = std::make_shared<Mesh>(vertexLayout, vertices, indices);
 
     return result;
 }
+
 } // namespace mymc

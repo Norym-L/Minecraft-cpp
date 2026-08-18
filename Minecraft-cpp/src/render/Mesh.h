@@ -7,6 +7,7 @@
 #include "graphics/VertexLayout.h"
 #include <glm/vec3.hpp>
 #include <memory>
+#include <vector>
 
 namespace mymc
 {
@@ -80,6 +81,24 @@ public:
     static std::shared_ptr<Mesh> CreateBlockByFace(const std::array<bool, 6> &faces);
 
     /**
+     * 合并多个网格为一个大网格（不做顶点去重，仅偏移位置）。
+     * @param meshes 网格列表（网格，世界坐标偏移）
+     * @return 合并后的网格
+     */
+    static std::shared_ptr<Mesh> MergeMeshes(
+        const std::vector<std::pair<std::shared_ptr<Mesh>, glm::vec3>>& meshes);
+
+    /**
+     * 合并多个网格为一个大网格（自动去重相同顶点）。
+     * @param meshes 网格列表（网格，世界坐标偏移）
+     * @return 合并后的网格
+     */
+    static std::shared_ptr<Mesh> MergeMeshesDeduplicated(
+        const std::vector<std::pair<std::shared_ptr<Mesh>, glm::vec3>>& meshes);
+
+
+#if 0
+    /**
          * @brief 创建球体。
          * @param radius 半径
          * @param sectors 经度分段数
@@ -87,12 +106,22 @@ public:
          * @return std::shared_ptr<Mesh> 球体网格对象的共享指针
          */
     static std::shared_ptr<Mesh> CreateSphere(float radius, int sectors, int stacks);
+#endif
 
     /**
          * @brief 创建 2D 平面（单位四边形）。
          * @return std::shared_ptr<Mesh> 平面网格对象的共享指针
          */
     static std::shared_ptr<Mesh> CreatePlane();
+
+    /// @brief 获取顶点数据（CPU 端副本）。
+    [[nodiscard]] const std::vector<float>& getVertices() const { return m_verticesCPU; }
+
+    /// @brief 获取索引数据（CPU 端副本）。
+    [[nodiscard]] const std::vector<uint32_t>& getIndices() const { return m_indicesCPU; }
+
+    /// @brief 获取顶点布局。
+    [[nodiscard]] const VertexLayout& getVertexLayout() const { return m_vertexLayout; }
 
 private:
     VertexLayout m_vertexLayout; // 顶点布局
@@ -102,5 +131,8 @@ private:
 
     size_t m_vertexCount = 0; // 顶点数量
     size_t m_indexCount = 0;  // 索引数量
+
+    std::vector<float> m_verticesCPU;      // CPU 端顶点数据副本（供合并使用）
+    std::vector<uint32_t> m_indicesCPU;    // CPU 端索引数据副本（供合并使用）
 };
 } // namespace mymc
