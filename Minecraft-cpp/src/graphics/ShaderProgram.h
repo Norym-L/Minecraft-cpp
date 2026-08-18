@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 #include <glm/mat4x4.hpp>
+#include <glm/mat3x3.hpp>
 
 namespace mymc
 {
@@ -65,10 +66,17 @@ public:
 
     /**
 		 * @brief 设置 4x4 矩阵 uniform。
-		 * @param name uniform 变量名
+		 * @param name  uniform 变量名
 		 * @param mat  4x4 矩阵
 		 */
     void setUniform(const std::string &name, const glm::mat4 &mat);
+
+    /**
+		 * @brief 设置 3x3 矩阵 uniform（法线矩阵等）。
+		 * @param name  uniform 变量名
+		 * @param mat  3x3 矩阵
+		 */
+    void setUniform(const std::string &name, const glm::mat3 &mat);
 
     /**
 		 * @brief 设置 vec3 向量 uniform。

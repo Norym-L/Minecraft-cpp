@@ -135,7 +135,12 @@ const std::shared_ptr<ShaderProgram> &GraphicsAPI::getDefaultShaderProgram()
 				in vec3 vNormal;
 				in vec3 vFragPos;
 
-				uniform sampler2D baseColorTexture;
+				uniform sampler2D blockTexTop;    // +Y (顶面)
+				uniform sampler2D blockTexBottom; // -Y (底面)
+				uniform sampler2D blockTexFront;  // +Z (正面)
+				uniform sampler2D blockTexBack;   // -Z (后面)
+				uniform sampler2D blockTexRight;  // +X (右面)
+				uniform sampler2D blockTexLeft;   // -X (左面)
 				uniform int uUseTexture;
 
 				void main()
@@ -160,10 +165,22 @@ const std::shared_ptr<ShaderProgram> &GraphicsAPI::getDefaultShaderProgram()
 
 					vec3 result = diffuse + specular + ambient;
 
-					//无贴图时使用顶点颜色，避免采样残留绑定
-					vec4 texColor = (uUseTexture == 1)
-						? texture(baseColorTexture, vUV)
-						: vec4(1.0);
+					//根据法线方向选择对应面的贴图
+					vec4 texColor;
+					if (uUseTexture == 1)
+					{
+						vec3 n = normalize(vNormal);
+						if      (n.y >  0.5) texColor = texture(blockTexTop, vUV);
+						else if (n.y < -0.5) texColor = texture(blockTexBottom, vUV);
+						else if (n.z >  0.5) texColor = texture(blockTexFront, vUV);
+						else if (n.z < -0.5) texColor = texture(blockTexBack, vUV);
+						else if (n.x >  0.5) texColor = texture(blockTexRight, vUV);
+						else                 texColor = texture(blockTexLeft, vUV);
+					}
+					else
+					{
+						texColor = vec4(1.0);
+					}
 
 					FragColor = texColor * vec4(result, 1.0);
 				}

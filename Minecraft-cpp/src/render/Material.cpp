@@ -36,6 +36,16 @@ void Material::setParam(const std::string &name, const std::shared_ptr<Texture> 
     m_textures[name] = texture;
 }
 
+void Material::setFaceTextures(const std::array<std::shared_ptr<Texture>, 6>& textures)
+{
+    m_textures["blockTexTop"]    = textures[0];
+    m_textures["blockTexBottom"] = textures[1];
+    m_textures["blockTexFront"]  = textures[2];
+    m_textures["blockTexBack"]   = textures[3];
+    m_textures["blockTexRight"]  = textures[4];
+    m_textures["blockTexLeft"]   = textures[5];
+}
+
 void Material::bind()
 {
     if (!m_shaderProgram)

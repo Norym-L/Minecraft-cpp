@@ -59,6 +59,12 @@ public:
 		 */
     void setParam(const std::string &name, const std::shared_ptr<Texture> &texture);
 
+    /**
+		 * @brief 批量设置六面贴图，uniform 名称与默认 3D 着色器约定一致。
+		 * @param textures 贴图顺序：+- YZX
+		 */
+    void setFaceTextures(const std::array<std::shared_ptr<Texture>, 6>& textures);
+
     /// @brief 绑定材质，激活其着色器程序并设置所有参数。
     void bind();
 
