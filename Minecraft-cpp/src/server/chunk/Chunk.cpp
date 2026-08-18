@@ -25,11 +25,11 @@ void Chunk::fillBlocks(const int x1, const int y1, const int z1, const int x2, c
     const int yStart = std::min(y1, y2), yEnd = std::max(y1, y2);
     const int zStart = std::min(z1, z2), zEnd = std::max(z1, z2);
 
-    for (int y = yStart; y < yEnd; ++y)
+    for (int y = yStart; y <= yEnd; ++y)
     {
-        for (int z = zStart; z < zEnd; ++z)
+        for (int z = zStart; z <= zEnd; ++z)
         {
-            for (int x = xStart; x < xEnd; ++x)
+            for (int x = xStart; x <= xEnd; ++x)
             {
                 setBlock(x, y, z, block_id);
             }
