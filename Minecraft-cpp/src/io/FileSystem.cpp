@@ -82,6 +82,6 @@ namespace mymc
 	std::string FileSystem::LoadAssetFileText(const std::string& relative_path)
 	{
 		auto buffer = LoadAssetFile(relative_path);
-		return std::string(buffer.begin(), buffer.end());
+		return {buffer.begin(), buffer.end()};
 	}
 }
