@@ -83,10 +83,10 @@ class TextureManager
 {
 public:
     /**
-         * @brief 获取或加载贴图（带缓存）。
-         * @param path 图片路径
-         * @return std::shared_ptr<Texture> 贴图对象共享指针；加载失败返回 nullptr
-         */
+     * @brief 获取或加载贴图（带缓存）。
+     * @param path 图片路径
+     * @return std::shared_ptr<Texture> 贴图对象共享指针；加载失败返回 nullptr
+     */
     std::shared_ptr<Texture> getOrLoadTexture(const std::string& path);
 
     /// @brief 清空贴图缓存（需在 GL 上下文销毁前调用）。

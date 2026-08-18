@@ -5,11 +5,12 @@
 namespace block
 {
 Block::Block(
-    std::string                            name,
-    const std::shared_ptr<mymc::Mesh> &    mesh,
+    const std::uint64_t id,
+    std::string name,
+    const std::shared_ptr<mymc::Mesh> &mesh,
     const std::shared_ptr<mymc::Material> &material,
-    const std::shared_ptr<mymc::Texture> & texture)
-    : m_name(std::move(name)), m_mesh(mesh), m_material(material)
+    const std::shared_ptr<mymc::Texture> &texture)
+    : m_id(id), m_name(std::move(name)), m_mesh(mesh), m_material(material)
 {
     m_textures.fill(texture);
 }

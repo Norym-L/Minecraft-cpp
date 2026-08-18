@@ -34,12 +34,6 @@ public:
     void init();
 
     /**
-         * 更新所有方块 // TODO 临时渲染
-         * @param delta_time 帧时间
-         */
-    void update(float delta_time);
-
-    /**
          * 注册方块
          * @param block 方块的独特指针
          */
@@ -59,7 +53,6 @@ public:
     const Block &getBlock(std::uint64_t block_id) const;
 
 private:
-    std::uint64_t                                              m_next_id = 0; // 下一个方块的注册id
     std::unordered_map<std::uint64_t, std::unique_ptr<Block> > m_blockMap;    // 方块映射表
 };
 } // block

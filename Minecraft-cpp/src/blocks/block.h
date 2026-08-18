@@ -27,6 +27,7 @@ public: // TODO 方块注册
     // explicit Block(std::string &name);
 
     explicit Block(
+        std::uint64_t id,
         std::string name,
         const std::shared_ptr<mymc::Mesh> &mesh,
         const std::shared_ptr<mymc::Material> &material,
@@ -56,7 +57,7 @@ public: // TODO 方块注册
     [[nodiscard]] std::array<std::shared_ptr<mymc::Texture>, 6> textures() const { return m_textures; }
 
 private:
-    std::uint64_t m_id = 0;                                        // 唯一id
+    std::uint64_t m_id;                                             // id
     std::string m_name;                                            // 名称
     std::shared_ptr<mymc::Mesh> m_mesh;                            // 方块网格
     std::shared_ptr<mymc::Material> m_material;                    // 方块材质

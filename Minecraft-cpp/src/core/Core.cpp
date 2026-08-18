@@ -5,6 +5,7 @@
 
 #include "entity/Player.h"
 #include "entity/components/CameraComponent.h"
+#include "Minecraft-cpp/logger/SpeedTest.h"
 
 // 回调函数
 namespace
@@ -171,8 +172,6 @@ void Core::run()
 
         // 更新实体
         m_entityManager.update(delta_time);
-        // 更新方块
-        m_blockManager.update(delta_time);
 
         // 世界渲染
         m_world->render();
@@ -194,7 +193,7 @@ void Core::run()
         m_inputManager.clearStates(); // 每帧清理按键状态
         GraphicsAPI::ClearBuffers();  // 每帧清屏
 
-        m_renderQueue.draw(m_graphicsAPI, camera_data); //TODO 这里57.58ms
+        m_renderQueue.draw(m_graphicsAPI, camera_data);57.58ms
 
         glfwSwapBuffers(m_window); // 交换缓冲上屏
     }

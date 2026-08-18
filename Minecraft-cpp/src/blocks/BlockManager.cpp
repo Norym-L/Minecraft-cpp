@@ -10,16 +10,16 @@ BlockManager::BlockManager() = default;
 
 void BlockManager::init() // TODO 完善注册结构
 {
-    registerBlock("Air", nullptr, nullptr, nullptr);
+    registerBlock(0, "Air", nullptr, nullptr, nullptr);
 
-    const auto mesh = mymc::Mesh::CreateBox();//TODO BlockManager::update里面无mesh会跳过
+    const auto mesh = mymc::Mesh::CreateBox();
 
     const auto texture = mymc::Texture::Load("mymc/block/stone.png");
     const auto material = std::make_shared<mymc::Material>();
     material->setShaderProgram(mymc::Core::GetInstance().getGraphicsAPI().getDefaultShaderProgram());
-    material->setParam("stone", texture); // TODO 默认着色器里面是baseColorTexture不是这里的名称
+    material->setParam("stone", texture);
 
-    registerBlock("stone", mesh, material, texture);
+    registerBlock(1, "stone", mesh, material, texture);
 }
 
 BlockManager &BlockManager::GetInstance()
@@ -28,29 +28,9 @@ BlockManager &BlockManager::GetInstance()
     return instance;
 }
 
-void BlockManager::update(float delta_time)
-{
-    for (auto &val: m_blockMap | std::views::values)
-    {
-        const auto block = val.get();
-        if (!val->m_mesh)
-        {
-            continue;
-        }
-        //TODO 删除渲染逻辑
-        mymc::RenderCommand command = {
-            .mesh         = block->m_mesh.get(),
-            .material     = block->m_material.get(),
-            .model_matrix = glm::mat4(1.0f)
-        };
-        mymc::Core::GetInstance().getRanderQueue().submit(command);
-    }
-}
-
 void BlockManager::registerBlock(std::unique_ptr<Block> block)
 {
-    m_blockMap[m_next_id] = std::move(block);
-    ++m_next_id;
+    m_blockMap[block->m_id] = std::move(block);
 }
 
 const Block &BlockManager::getBlock(const std::uint64_t block_id) const

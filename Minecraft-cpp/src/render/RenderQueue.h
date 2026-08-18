@@ -85,7 +85,7 @@ public:
      * @brief 执行所有队列中的渲染命令并清空队列。
      * @param graphicsAPI 图形 API
      * @param camera_data 相机数据
-     */ //TODO 渲染效率优化
+     */
     void draw(GraphicsAPI &graphicsAPI, const CameraData &camera_data);
 
 private:
