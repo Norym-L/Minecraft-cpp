@@ -50,7 +50,18 @@ public:
         registerBlock(std::make_unique<Block>(std::forward<Args>(args)...));
     }
 
+    /**
+     * 通过id获取方块
+     * @param block_id 方块注册id
+     * @return 方块
+     */
     const Block &getBlock(std::uint64_t block_id) const;
+
+    /**
+     * 从json注册方块
+     * @param path json路径
+     */
+    void loadFromJson(const std::string& path = "mymc/block/block_register.json");
 
 private:
     std::unordered_map<std::uint64_t, std::unique_ptr<Block> > m_blockMap;    // 方块映射表

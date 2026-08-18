@@ -1,0 +1,34 @@
+{
+  "blocks": [
+    {
+      "id": 0,
+      "name": "Air"
+    },
+    {
+      "id": 1,
+      "name": "Stone",
+      "texture": {
+        "type": "all_same",
+        "side": "mymc/block/stone.png"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Grass",
+      "texture": {
+        "type": "different_faces",
+        "top": "mymc/block/grass_block_top.png",
+        "bottom": "mymc/block/dirt.png",
+        "side": "mymc/block/grass_block_side.png"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Dirt",
+      "texture": {
+        "type": "all_same",
+        "side": "mymc/block/dirt.png"
+      }
+    }
+  ]
+}
