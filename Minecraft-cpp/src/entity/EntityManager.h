@@ -31,17 +31,17 @@ public:
 		 * @return 新实体指针
 		 */
     template<typename T, typename... Args>
-    T *addEntity(Args &&... args)
+    T* addEntity(Args &&... args)
     {
         static_assert(std::is_base_of_v<entity::Entity, T>, "T must be derived from Entity");
 
         std::uint64_t id = m_nextId.fetch_add(1, std::memory_order_relaxed);
 
         auto entity = std::make_unique<T>(id, std::forward<Args>(args)...);
-        T *  ptr    = entity.get();
+        T* ptr = entity.get();
 
         std::scoped_lock lock(m_mutex);
-        auto             [it, inserted] = m_entitys.emplace(id, std::move(entity));
+        auto [it, inserted] = m_entitys.emplace(id, std::move(entity));
         if (!inserted)
         {
             return nullptr; // 理论上不会发生（原子分配）
@@ -70,12 +70,12 @@ public:
 		 * 获取主相机所在实体
 		 * @return 实体指针，无相机返回 nullptr
 		 */
-    Entity *getMainCamera() const;
+    Entity* getMainCamera() const;
 
 private:
-    std::atomic<std::uint64_t>                                  m_nextId{1};                  // 原子 ID 分配器，从 1 开始
-    std::mutex                                                  m_mutex;                      // 保护 m_entitys
-    std::unordered_map<std::uint64_t, std::unique_ptr<Entity> > m_entitys;                    // 实体容器
-    Entity *                                                    m_mainCameraEntity = nullptr; // 主相机所在实体指针
+    std::atomic<std::uint64_t> m_nextId{1};                                // 原子 ID 分配器，从 1 开始
+    std::mutex m_mutex;                                                    // 保护 m_entitys
+    std::unordered_map<std::uint64_t, std::unique_ptr<Entity> > m_entitys; // 实体容器
+    Entity* m_mainCameraEntity = nullptr;                                  // 主相机所在实体指针
 };
 }

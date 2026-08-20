@@ -101,7 +101,7 @@ public:
     TextureManager &getTextureManager();
 
 private:
-    GLFWwindow *m_window = nullptr;                   // 窗口指针
+    GLFWwindow* m_window = nullptr;                   // 窗口指针
     std::chrono::steady_clock::time_point m_lastTime; // 上一帧时间点（用于计算 deltaTime）
     bool m_cursorEnabled = false;                     // 光标是否启用
     bool m_renderMode = true;                         // 设置渲染模式 true正常 false线框
@@ -110,8 +110,8 @@ private:
     InputManager m_inputManager;                      // 按键输入管理器
     entity::EntityManager m_entityManager;            // 实体管理器
     block::BlockManager m_blockManager;               // 方块管理器
-    FileSystem m_fileSystem;        // 文件管理器
-    TextureManager m_textureManager;               // 贴图管理器
+    FileSystem m_fileSystem;                          // 文件管理器
+    TextureManager m_textureManager;                  // 贴图管理器
     std::unique_ptr<server::World> m_world;           // 世界
 };
 }

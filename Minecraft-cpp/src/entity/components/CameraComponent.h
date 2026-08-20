@@ -45,7 +45,7 @@ private:
     mymc::CameraData m_cameraData;            // 相机数据
     float            m_fov          = 60.0f;  // 垂直渲染角度
     float            m_nearPlane    = 0.1f;   // 最近渲染距离
-    float            m_farPlane     = 100.0f; // 最远渲染距离
+    float            m_farPlane     = 192.0f; // 最远渲染距离
     int              m_windowWidth  = 800;    // 窗口宽度
     int              m_windowHeight = 600;    // 窗口高度
 };

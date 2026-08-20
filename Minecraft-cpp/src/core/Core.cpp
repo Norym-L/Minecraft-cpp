@@ -138,7 +138,7 @@ void Core::run()
     // ===== 场景搭建（测试）=====
     // 1. 创建相机实体（必须！场景里要有一个带 CameraComponent 的实体）
     auto *player = m_entityManager.addEntity<entity::Player>("Norym");
-    player->setPosition(glm::vec3(-23.0f, 8.0f, 8.0f));
+    player->setPosition(glm::vec3(-0.0f, 55.0f, 0.0f));
 
     // 2. 让相机看向原点（需要 experimental 扩展）
     //    在文件顶部加：#define GLM_ENABLE_EXPERIMENTAL + #include <glm/gtx/quaternion.hpp>
@@ -150,6 +150,7 @@ void Core::run()
     m_entityManager.reloadMainCamera();
     auto camera = m_entityManager.getMainCamera();
 
+    std::thread word_build_thread([&](){while (true) {m_world->update();}});
 
     while (!glfwWindowShouldClose(m_window))
     {
@@ -173,9 +174,13 @@ void Core::run()
         // 更新实体
         m_entityManager.update(delta_time);
 
+        log::SpeedTest speed_test;
+        auto time = speed_test.elapsed_ms();
+        speed_test.restart();
         // 世界渲染
         m_world->render();
 
+        auto time2 = speed_test.elapsed_ms();
         // 测试结束
 
         CameraData camera_data{};
