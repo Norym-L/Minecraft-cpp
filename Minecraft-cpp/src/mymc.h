@@ -14,5 +14,7 @@
 
 #include "core/Core.h"
 
+#include "utility/TaskPool.h"
+
 #include "entity/EntityManager.h"
 #include "blocks/BlockManager.h"
