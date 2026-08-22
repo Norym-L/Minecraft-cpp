@@ -11,6 +11,14 @@
 
 namespace mymc
 {
+/// @brief 纯 CPU 顶点数据（不含任何 OpenGL 资源），可由任意线程构建，再由 Mesh 上传到 GPU。
+struct MeshData
+{
+    std::vector<float> vertices;    ///< 交错排列的顶点数据
+    std::vector<uint32_t> indices;  ///< 索引数据（可能为空）
+    VertexLayout layout;            ///< 顶点布局
+};
+
 /// @brief 网格类，封装顶点数据（VBO）、索引数据（EBO）与顶点数组对象（VAO），用于 GPU 绘制。
 class Mesh
 {
@@ -29,6 +37,12 @@ public:
          * @param vertices 顶点数据（交错排列的浮点数组）
          */
     Mesh(const VertexLayout &layout, const std::vector<float> &vertices);
+
+    /**
+         * @brief 从纯 CPU 顶点数据构造网格（做 GL 上传；必须在 GL 线程调用）。
+         * @param data CPU 端顶点数据
+         */
+    explicit Mesh(const MeshData &data);
 
     /// @brief 析构函数，释放 VAO/VBO/EBO 等 OpenGL 资源。
     ~Mesh();

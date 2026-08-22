@@ -73,6 +73,10 @@ Mesh::Mesh(const VertexLayout &layout, const std::vector<float> &vertices)
     m_vertexCount = vertices.size() * sizeof(float) / m_vertexLayout.stride;
 }
 
+Mesh::Mesh(const MeshData &data)
+    : Mesh(data.layout, data.vertices, data.indices)
+{}
+
 Mesh::~Mesh()
 {
     if (m_VAO != 0)
