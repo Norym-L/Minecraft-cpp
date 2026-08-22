@@ -65,5 +65,36 @@ void PlayerControlComponent::update(float delta_time)
         wish_dir += glm::vec3(0.0f, 1.0f, 0.0f) * delta_time * m_velocity / 3.0f;
 
     m_owner->setPosition(m_owner->getPosition() + wish_dir);
+
+    // ===== 方块交互（射线拾取 + 放置/破坏）=====
+    auto &world = mymc::Core::GetInstance().getWorld();
+    const glm::vec3 eye_dir  = glm::normalize(rotation * glm::vec3(0.0f, 0.0f, -1.0f));
+    const glm::vec3 eye_pos  = m_owner->getPosition() + eye_dir * 0.1f; // 轻微前移，避免点到自身格
+    constexpr float kReach   = 6.0f;
+    constexpr float kBreakInterval = 0.15f; // 按住左键每 0.15s 破坏一块
+
+    m_breakCooldown -= delta_time;
+
+    // 左键：按住持续破坏（目标块变为空气）
+    if (input_manager.isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT) && m_breakCooldown <= 0.0f)
+    {
+        server::World::RaycastHit hit;
+        if (world.raycastBlock(eye_pos, eye_dir, kReach, hit))
+        {
+            world.setBlockAt(hit.blockX, hit.blockY, hit.blockZ, 0);
+            m_breakCooldown = kBreakInterval;
+        }
+    }
+
+    // 右键：单击放置当前选中的方块到命中面的相邻格
+    if (input_manager.wasMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT))
+    {
+        server::World::RaycastHit hit;
+        if (world.raycastBlock(eye_pos, eye_dir, kReach, hit))
+        {
+            world.setBlockAt(hit.blockX + hit.faceX, hit.blockY + hit.faceY, hit.blockZ + hit.faceZ,
+                             m_selectedBlockId);
+        }
+    }
 }
 } // entity

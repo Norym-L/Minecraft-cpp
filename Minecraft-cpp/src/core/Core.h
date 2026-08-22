@@ -100,6 +100,12 @@ public:
      */
     TextureManager &getTextureManager();
 
+    /**
+     * 获取世界
+     * @return 世界引用
+     */
+    server::World &getWorld();
+
 private:
     GLFWwindow* m_window = nullptr;                   // 窗口指针
     std::chrono::steady_clock::time_point m_lastTime; // 上一帧时间点（用于计算 deltaTime）

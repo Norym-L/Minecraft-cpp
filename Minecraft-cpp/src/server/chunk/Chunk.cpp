@@ -53,11 +53,26 @@ void Chunk::fill(const std::uint64_t block_id)
 
 std::uint64_t Chunk::getBlock(const int x, const int y, const int z) const
 {
-    return m_sections[y / 16].getBlock(x, y, z);
+    // 越界保护：外部调用方可能传入世界边界外的坐标
+    if (x < 0 || x >= 16 || z < 0 || z >= 16 || y < 0 || y >= 256)
+    {
+        return 0; // 空气
+    }
+    // y 为全局 0..255，section 需要的是局部 0..15（与 setBlock 的 y%16 一致）
+    return m_sections[y / 16].getBlock(x, y % 16, z);
+}
+
+std::uint64_t Chunk::getBlockSafe(const int x, const int y, const int z) const
+{
+    std::lock_guard<std::mutex> lock(m_blockMutex);
+    return getBlock(x, y, z);
 }
 
 void Chunk::buildMeshData()
 {
+    // 全程持块数据锁：网格构建期间读取方块数据，须与主线程编辑（setBlock）互斥
+    std::lock_guard<std::mutex> lock(m_blockMutex);
+
     m_meshData.reset();
     m_uploadRequested.store(false);
 

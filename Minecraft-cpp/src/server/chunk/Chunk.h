@@ -2,6 +2,7 @@
 #define MINECRAFT_CPP_CHUNK_H
 #include <atomic>
 #include <memory>
+#include <mutex>
 
 #include "ChunkSections.h"
 #include "Common.h"
@@ -32,9 +33,12 @@ public:
      * @param y 0~255
      * @param z 0~15
      * @param block_id 方块的注册id
+     *
+     * 线程安全：内部持 m_blockMutex，与网格构建线程互斥。
      */
     void setBlock(const int x, const int y, const int z, const std::uint64_t block_id)
     {
+        std::lock_guard<std::mutex> lock(m_blockMutex);
         m_wasChanged = true;
         m_sections[y / 16].setBlock(x, y % 16, z, block_id);
     }
@@ -54,13 +58,22 @@ public:
     void fill(std::uint64_t block_id);
 
     /**
-     * 获取方块注册id
+     * 获取方块注册id（调用方必须已持有 m_blockMutex；网格构建等热路径使用）
      * @param x 0~15
      * @param y 0~255
      * @param z 0~15
-     * @return 方块的注册id
+     * @return 方块的注册id；越界返回 0（空气）
      */
     [[nodiscard]] inline std::uint64_t getBlock(int x, int y, int z) const;
+
+    /**
+     * 线程安全的只读方块访问（内部加锁，供射线检测等低频外部读取）
+     * @param x 0~15
+     * @param y 0~255
+     * @param z 0~15
+     * @return 方块的注册id；越界返回 0（空气）
+     */
+    [[nodiscard]] std::uint64_t getBlockSafe(const int x, const int y, const int z) const;
 
     /**
      * 构建区块网格的纯 CPU 顶点数据（合并所有小节，chunk 内部去重）。
@@ -77,6 +90,7 @@ public:
 private:
     mymc::ChunkPos m_chunkPos = {};                                  // 区块的坐标
     std::array<ChunkSections, 16> m_sections;                        // 区块垂直切片
+    mutable std::mutex m_blockMutex;                                 // 方块数据互斥锁（编辑 vs 网格构建）
     std::atomic<bool> m_wasChanged{false};                           // 区块是否发生改变（方块数据层面）
     std::atomic<bool> m_buildInFlight{false};                        // 是否有生成/重建任务在飞行中
     std::shared_ptr<mymc::MeshData> m_meshData;                      // 待上传的 CPU 顶点数据（构建线程产出）

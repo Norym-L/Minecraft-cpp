@@ -5,6 +5,7 @@
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <limits>
 
 #include "render/RenderQueue.h"
 
@@ -193,6 +194,156 @@ void World::render()
         {
             mymc::Core::GetInstance().getRanderQueue().submit(chunkPtr->m_renderCommands3D);
         }
+    }
+}
+
+bool World::raycastBlock(const glm::vec3 &origin, const glm::vec3 &dir, const float max_dist, RaycastHit &hit) const
+{
+    // 网格方块的实际可见占位为 [L-0.5, L+0.5]（MeshBuilder 的 -0.5 中心约定）。
+    // 把射线整体平移 +0.5 后再取整，floor(p+0.5) 即命中可见方块对应的逻辑格，与画面中心严格对齐。
+    const glm::vec3 ray_origin = origin + glm::vec3(0.5f);
+
+    // Amanatides & Woo 的 DDA 体素遍历：逐格跨越体素边界，命中首个非空气方块
+    int cx = static_cast<int>(std::floor(ray_origin.x));
+    int cy = static_cast<int>(std::floor(ray_origin.y));
+    int cz = static_cast<int>(std::floor(ray_origin.z));
+
+    const glm::vec3 d = glm::normalize(dir);
+    const int stepX = d.x > 0.0f ? 1 : (d.x < 0.0f ? -1 : 0);
+    const int stepY = d.y > 0.0f ? 1 : (d.y < 0.0f ? -1 : 0);
+    const int stepZ = d.z > 0.0f ? 1 : (d.z < 0.0f ? -1 : 0);
+
+    constexpr float kEps = 1e-6f;
+    const float tDeltaX = std::abs(d.x) > kEps ? std::abs(1.0f / d.x) : std::numeric_limits<float>::max();
+    const float tDeltaY = std::abs(d.y) > kEps ? std::abs(1.0f / d.y) : std::numeric_limits<float>::max();
+    const float tDeltaZ = std::abs(d.z) > kEps ? std::abs(1.0f / d.z) : std::numeric_limits<float>::max();
+
+    float tMaxX = std::numeric_limits<float>::max();
+    float tMaxY = std::numeric_limits<float>::max();
+    float tMaxZ = std::numeric_limits<float>::max();
+    if (stepX > 0) tMaxX = (static_cast<float>(cx) + 1.0f - ray_origin.x) * tDeltaX;
+    else if (stepX < 0) tMaxX = (ray_origin.x - static_cast<float>(cx)) * tDeltaX;
+    if (stepY > 0) tMaxY = (static_cast<float>(cy) + 1.0f - ray_origin.y) * tDeltaY;
+    else if (stepY < 0) tMaxY = (ray_origin.y - static_cast<float>(cy)) * tDeltaY;
+    if (stepZ > 0) tMaxZ = (static_cast<float>(cz) + 1.0f - ray_origin.z) * tDeltaZ;
+    else if (stepZ < 0) tMaxZ = (ray_origin.z - static_cast<float>(cz)) * tDeltaZ;
+
+    int faceNx = 0, faceNy = 0, faceNz = 0; // 最近一次跨越的面（方向 = 步进方向）
+    float t = 0.0f;
+    for (int i = 0; i < 256 && t <= max_dist; ++i)
+    {
+        if (const auto block_id = getBlockAt(cx, cy, cz); block_id != 0)
+        {
+            hit.blockX = cx;
+            hit.blockY = cy;
+            hit.blockZ = cz;
+            hit.faceX = -faceNx; // 面向射线来向的面（放置位置 = 命中点 + face）
+            hit.faceY = -faceNy;
+            hit.faceZ = -faceNz;
+            hit.blockId = block_id;
+            return true;
+        }
+
+        if (tMaxX < tMaxY && tMaxX < tMaxZ)
+        {
+            cx += stepX; t = tMaxX; tMaxX += tDeltaX; faceNx = stepX; faceNy = 0; faceNz = 0;
+        }
+        else if (tMaxY < tMaxZ)
+        {
+            cy += stepY; t = tMaxY; tMaxY += tDeltaY; faceNx = 0; faceNy = stepY; faceNz = 0;
+        }
+        else
+        {
+            cz += stepZ; t = tMaxZ; tMaxZ += tDeltaZ; faceNx = 0; faceNy = 0; faceNz = stepZ;
+        }
+    }
+    return false;
+}
+
+std::uint64_t World::getBlockAt(const int wx, const int wy, const int wz) const
+{
+    const int cx = static_cast<int>(std::floor(static_cast<double>(wx) / 16.0));
+    const int cz = static_cast<int>(std::floor(static_cast<double>(wz) / 16.0));
+
+    std::shared_ptr<Chunk> chunk;
+    {
+        std::lock_guard<std::mutex> lock(m_mapMutex);
+        const auto it = m_worldMap.find(mymc::ChunkPos{.x = cx, .z = cz});
+        if (it == m_worldMap.end())
+        {
+            return 0; // 未加载 = 空气
+        }
+        chunk = it->second;
+    }
+    return chunk->getBlockSafe(wx - cx * 16, wy, wz - cz * 16);
+}
+
+bool World::setBlockAt(const int wx, const int wy, const int wz, const std::uint64_t block_id)
+{
+    if (wy < 0 || wy >= 256)
+    {
+        return false;
+    }
+
+    const int cx = static_cast<int>(std::floor(static_cast<double>(wx) / 16.0));
+    const int cz = static_cast<int>(std::floor(static_cast<double>(wz) / 16.0));
+
+    std::shared_ptr<Chunk> chunk;
+    {
+        std::lock_guard<std::mutex> lock(m_mapMutex);
+        const auto it = m_worldMap.find(mymc::ChunkPos{.x = cx, .z = cz});
+        if (it == m_worldMap.end())
+        {
+            return false; // 区块未加载：不落方块（避免与生成竞争）
+        }
+        chunk = it->second;
+    }
+
+    const int lx = wx - cx * 16;
+    const int lz = wz - cz * 16;
+    if (lx < 0 || lx > 15 || lz < 0 || lz > 15)
+    {
+        return false;
+    }
+
+    if (chunk->getBlockSafe(lx, wy, lz) == block_id)
+    {
+        return true; // 无变化
+    }
+
+    std::cerr << "[Edit] (" << wx << "," << wy << "," << wz << ") -> id " << block_id << std::endl;
+    chunk->setBlock(lx, wy, lz, block_id);
+    scheduleRebuild(chunk);
+
+    // 边界联动：被编辑方块位于区块边缘时，相邻区块对应面的可见性也改变
+    auto rebuildNeighborChunk = [&](const int ncx, const int ncz)
+        {
+        std::lock_guard<std::mutex> lock(m_mapMutex);
+        if (const auto it = m_worldMap.find(mymc::ChunkPos{.x = ncx, .z = ncz}); it != m_worldMap.end())
+        {
+            scheduleRebuild(it->second);
+        }
+        };
+    if (lx == 0) rebuildNeighborChunk(cx - 1, cz);
+    if (lx == 15) rebuildNeighborChunk(cx + 1, cz);
+    if (lz == 0) rebuildNeighborChunk(cx, cz - 1);
+    if (lz == 15) rebuildNeighborChunk(cx, cz + 1);
+    return true;
+}
+
+void World::scheduleRebuild(const std::shared_ptr<Chunk> &chunk)
+{
+    if (!chunk)
+    {
+        return;
+    }
+    if (m_taskPool)
+    {
+        m_taskPool->submit([chunk]() { chunk->buildMeshData(); });
+    }
+    else
+    {
+        chunk->buildMeshData(); // 无池时同步重建（安全网）
     }
 }
 } // server

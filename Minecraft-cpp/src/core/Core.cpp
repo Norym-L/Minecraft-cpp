@@ -171,7 +171,7 @@ void Core::run()
         m_lastTime = now;
 
         // 测试开始
-        std::cout << 1.0f / delta_time << std::endl;
+        // std::cout << 1.0f / delta_time << std::endl;
         // 更新实体
         m_entityManager.update(delta_time);
 
@@ -273,5 +273,10 @@ FileSystem &Core::getFileManager()
 TextureManager &Core::getTextureManager()
 {
     return m_textureManager;
+}
+
+server::World &Core::getWorld()
+{
+    return *m_world;
 }
 }
