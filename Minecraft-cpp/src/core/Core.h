@@ -113,5 +113,6 @@ private:
     FileSystem m_fileSystem;                          // 文件管理器
     TextureManager m_textureManager;                  // 贴图管理器
     std::unique_ptr<server::World> m_world;           // 世界
+    std::unique_ptr<utility::TaskPool> m_taskPool;    // 工作线程池（区块生成/网格构建）
 };
 }

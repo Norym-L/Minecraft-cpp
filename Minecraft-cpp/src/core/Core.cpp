@@ -118,9 +118,12 @@ bool Core::init(const int width, const int height, const std::string &title)
     m_renderQueue.init();
     m_blockManager.init(); // 注册测试方块（需在 GL 上下文就绪后执行）
     m_world = std::make_unique<server::World>();
+    m_taskPool = std::make_unique<utility::TaskPool>(4); // 4 个工作线程
+    m_world->setTaskPool(m_taskPool.get());
     m_world->init();
 
-    setCursorEnabled(false); // 默认禁用光标
+    setCursorEnabled(true); // 默认启用光标
+    glfwSwapInterval(0);    // 关闭垂直同步
 
     // 禁止opengl线性插值
     // 放大时（图片小于显示区域）：用最近邻，保留硬边缘
@@ -150,8 +153,6 @@ void Core::run()
     m_entityManager.reloadMainCamera();
     auto camera = m_entityManager.getMainCamera();
 
-    std::thread word_build_thread([&]() { while (true) m_world->update(); });
-
     while (!glfwWindowShouldClose(m_window))
     {
         glfwPollEvents();
@@ -170,9 +171,12 @@ void Core::run()
         m_lastTime = now;
 
         // 测试开始
-
+        std::cout << 1.0f / delta_time << std::endl;
         // 更新实体
         m_entityManager.update(delta_time);
+
+        // 世界请求阶段：仅扫描与提交任务（重活在工作线程池）
+        m_world->update();
 
         log::SpeedTest speed_test;
         auto time = speed_test.elapsed_ms();
@@ -205,6 +209,12 @@ void Core::run()
         auto time3 = speed_test.elapsed_ms();
 
         glfwSwapBuffers(m_window); // 交换缓冲上屏
+    }
+
+    // 停止线程池：等待工作线程安全退出后再销毁子系统
+    if (m_taskPool)
+    {
+        m_taskPool->stop();
     }
 }
 

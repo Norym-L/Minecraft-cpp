@@ -2,6 +2,7 @@
 
 #include <glm/mat4x4.hpp>
 
+#include <array>
 #include <cmath>
 #include <iostream>
 
@@ -64,25 +65,37 @@ namespace server
 {
 void World::init()
 {
-    auto chunk1 = std::make_unique<Chunk>();
-    auto chunk2 = std::make_unique<Chunk>();
-    auto chunk3 = std::make_unique<Chunk>();
-    auto chunk4 = std::make_unique<Chunk>();
-    chunk1->m_chunkPos = {.x = 0, .z = 0};
-    chunk2->m_chunkPos = {.x = 1, .z = 0};
-    chunk3->m_chunkPos = {.x = 0, .z = 1};
-    chunk4->m_chunkPos = {.x = 1, .z = 1};
+    constexpr std::array<std::pair<int, int>, 4> kInitChunks = {{
+        {0, 0}, {1, 0}, {0, 1}, {1, 1}
+    }};
 
-    const WorldMaker world_maker(100000000);
-    world_maker.simplexNoise2D(*chunk1.get());
-    world_maker.simplexNoise2D(*chunk2.get());
-    world_maker.simplexNoise2D(*chunk3.get());
-    world_maker.simplexNoise2D(*chunk4.get());
+    for (const auto [cx, cz]: kInitChunks)
+    {
+        auto chunk = std::make_shared<Chunk>();
+        chunk->setChunkPos(mymc::ChunkPos{.x = cx, .z = cz});
+        {
+            std::lock_guard<std::mutex> lock(m_mapMutex);
+            m_worldMap[mymc::ChunkPos{.x = cx, .z = cz}] = chunk;
+        }
+        chunk->m_buildInFlight.store(true);
+        if (m_taskPool)
+        {
+            m_taskPool->submit([chunk, this]() { generateAndBuild(chunk); });
+        }
+        else
+        {
+            generateAndBuild(chunk); // 无池（应为 init 后不再发生）：同步构建
+        }
+    }
+}
 
-    m_worldMap[mymc::ChunkPos{.x = 0, .z = 0}] = std::move(chunk1);
-    m_worldMap[mymc::ChunkPos{.x = 1, .z = 0}] = std::move(chunk2);
-    m_worldMap[mymc::ChunkPos{.x = 0, .z = 1}] = std::move(chunk3);
-    m_worldMap[mymc::ChunkPos{.x = 1, .z = 1}] = std::move(chunk4);
+void World::generateAndBuild(const std::shared_ptr<Chunk> &chunk)
+{
+    // 地形生成 + 网格构建均为纯 CPU 操作，可在工作线程安全执行
+    m_worldMaker.simplexNoise2D(*chunk); // 填充方块数据（含设置 m_wasChanged）
+    chunk->m_wasChanged.store(false);
+    chunk->buildMeshData();              // CPU 网格 + chunk 内部去重，置 m_uploadRequested
+    chunk->m_buildInFlight.store(false);
 }
 
 void World::update()
@@ -93,13 +106,15 @@ void World::update()
             std::sqrt((pos1.x - pos2.x) * (pos1.x - pos2.x) + (pos1.z - pos2.z) * (pos1.z - pos2.z)));
         };
 
-    int visiable_chunk_far = 8;
+    const int visiable_chunk_far = 8;
     auto main_camera_entity_pos = mymc::Core::GetInstance().getEntityManager().getMainCamera()->getPosition();
     // 世界坐标转区块坐标（除以16）
     auto main_chunk_pos = mymc::ChunkPos{
         .x = static_cast<int>(main_camera_entity_pos.x) / 16,
         .z = static_cast<int>(main_camera_entity_pos.z) / 16
         };
+
+    // 卸载：移除过远区块（在飞行中的区块由 shared_ptr 保活，不影响安全）
     for (auto it = m_worldMap.begin(); it != m_worldMap.end();)
     {
         if (dformChunk(it->first, main_chunk_pos) > visiable_chunk_far + 4)
@@ -112,6 +127,8 @@ void World::update()
             ++it;
         }
     }
+
+    // 请求阶段：扫描缺失区块并提交 生成+构建 任务（重活全部进线程池）
     for (auto x_offset = -visiable_chunk_far; x_offset <= visiable_chunk_far; ++x_offset)
     {
         for (auto z_offset = -visiable_chunk_far; z_offset <= visiable_chunk_far; ++z_offset)
@@ -121,16 +138,26 @@ void World::update()
             {
                 continue;
             }
-            // 跳过已存在的区块
             if (m_worldMap.contains(new_pos))
             {
                 continue;
             }
-            auto new_chunk = std::make_unique<Chunk>();
+
+            auto new_chunk = std::make_shared<Chunk>();
             new_chunk->setChunkPos(new_pos);
-            m_worldMaker.simplexNoise2D(*new_chunk.get());
-            std::lock_guard<std::mutex> lock(m_mapMutex);
-            m_worldMap[new_pos] = std::move(new_chunk);
+            {
+                std::lock_guard<std::mutex> lock(m_mapMutex);
+                m_worldMap[new_pos] = new_chunk;
+            }
+            new_chunk->m_buildInFlight.store(true);
+            if (m_taskPool)
+            {
+                m_taskPool->submit([new_chunk, this]() { generateAndBuild(new_chunk); });
+            }
+            else
+            {
+                generateAndBuild(new_chunk);
+            }
         }
     }
 }
@@ -146,7 +173,6 @@ void World::render()
     extractFrustumPlanes(camera_data.project_matrix * camera_data.view_matrix, frustum_planes);
 
     std::lock_guard<std::mutex> lock(m_mapMutex);
-
     for (auto &[pos, chunkPtr]: m_worldMap)
     {
         // 区块包围盒：16x256x16（网格模型已按区块原点做了世界坐标偏移）
@@ -156,13 +182,17 @@ void World::render()
                            glm::vec3(min_x, 0.0f, min_z),
                            glm::vec3(min_x + 16.0f, 256.0f, min_z + 16.0f)))
         {
-            continue; // 视锥外：跳过网格重建与提交
+            continue; // 视锥外：跳过上传与提交
         }
-        if (chunkPtr->m_wasChanged)
+        // CPU 顶点数据由工作线程构建；这里只做 GL 上传（必须在 GL 线程）
+        if (chunkPtr->m_uploadRequested.exchange(false))
         {
-            chunkPtr->createRenderBuf();
+            chunkPtr->uploadMesh();
         }
-        mymc::Core::GetInstance().getRanderQueue().submit(chunkPtr->m_renderCommands3D);
+        if (!chunkPtr->m_renderCommands3D.empty())
+        {
+            mymc::Core::GetInstance().getRanderQueue().submit(chunkPtr->m_renderCommands3D);
+        }
     }
 }
 } // server
