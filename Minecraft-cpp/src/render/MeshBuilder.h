@@ -15,6 +15,7 @@
 namespace mymc
 {
 class Mesh;
+struct MeshData; // 纯 CPU 顶点数据（定义见 Mesh.h）
 
 /// @brief 面方向枚举
 enum class Face
@@ -74,6 +75,12 @@ public:
      * @return 合并后的网格
      */
     std::shared_ptr<Mesh> build();
+
+    /**
+     * @brief 构建合并后的纯 CPU 顶点数据（不做任何 GL 调用，可在任意线程执行）。
+     * @return 顶点数据；为空时返回 nullptr
+     */
+    std::shared_ptr<MeshData> buildMeshData();
 
     /// @brief 清空所有累积的数据。
     void clear();

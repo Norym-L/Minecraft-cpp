@@ -42,7 +42,17 @@ void MeshBuilder::addMesh(const std::vector<float>& vertices,
     }
     else
     {
-        // 有偏移：逐顶点处理，只偏移 position 分量
+        // 有偏移：逐顶点处理，只偏移 position 分量（按布局定位 position 偏移，不写死“前 3 个 float”）
+        size_t posOffset = 0;
+        for (const auto &elem: layout.elements)
+        {
+            if (elem.index == VertexElement::PositionIndex)
+            {
+                posOffset = elem.offset / sizeof(float);
+                break;
+            }
+        }
+
         const size_t vertexCount = vertices.size() / m_floatsPerVertex;
         m_vertices.reserve(m_vertices.size() + vertices.size());
 
@@ -55,10 +65,10 @@ void MeshBuilder::addMesh(const std::vector<float>& vertices,
                               vertices.begin() + base,
                               vertices.begin() + base + m_floatsPerVertex);
 
-            // 偏移 position（假设 position 是前 3 个 float）
-            m_vertices[m_vertices.size() - m_floatsPerVertex + 0] += offset.x;
-            m_vertices[m_vertices.size() - m_floatsPerVertex + 1] += offset.y;
-            m_vertices[m_vertices.size() - m_floatsPerVertex + 2] += offset.z;
+            // 偏移 position
+            m_vertices[m_vertices.size() - m_floatsPerVertex + posOffset + 0] += offset.x;
+            m_vertices[m_vertices.size() - m_floatsPerVertex + posOffset + 1] += offset.y;
+            m_vertices[m_vertices.size() - m_floatsPerVertex + posOffset + 2] += offset.z;
         }
 
         // 索引加上偏移后追加
@@ -168,6 +178,20 @@ std::shared_ptr<Mesh> MeshBuilder::build()
 
     auto mesh = std::make_shared<Mesh>(m_layout, m_vertices, m_indices);
     return mesh;
+}
+
+std::shared_ptr<MeshData> MeshBuilder::buildMeshData()
+{
+    if (m_vertices.empty())
+    {
+        return nullptr;
+    }
+
+    auto data = std::make_shared<MeshData>();
+    data->vertices = m_vertices;
+    data->indices  = m_indices;
+    data->layout   = m_layout;
+    return data;
 }
 
 void MeshBuilder::clear()
