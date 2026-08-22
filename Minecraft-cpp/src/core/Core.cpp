@@ -11,7 +11,7 @@
 namespace
 {
 //键盘按键回调函数
-void keyCallback(GLFWwindow *window, const int key, int, const int action, int)
+void keyCallback(GLFWwindow* window, const int key, int, const int action, int)
 {
     auto &inputManager = mymc::Core::GetInstance().getInputManager();
     if (action == GLFW_PRESS)
@@ -27,7 +27,7 @@ void keyCallback(GLFWwindow *window, const int key, int, const int action, int)
 }
 
 //鼠标按键回调函数
-void mouseButtonCallback(GLFWwindow *window, const int button, const int action, int mods)
+void mouseButtonCallback(GLFWwindow* window, const int button, const int action, int mods)
 {
     auto &inputManager = mymc::Core::GetInstance().getInputManager();
     if (action == GLFW_PRESS)
@@ -43,7 +43,7 @@ void mouseButtonCallback(GLFWwindow *window, const int button, const int action,
 }
 
 //鼠标指针回调函数
-void cursorPositionCallback(GLFWwindow *window, const double xpos, const double ypos)
+void cursorPositionCallback(GLFWwindow* window, const double xpos, const double ypos)
 {
     auto &inputManager = mymc::Core::GetInstance().getInputManager();
 
@@ -56,7 +56,7 @@ void cursorPositionCallback(GLFWwindow *window, const double xpos, const double 
 }
 
 //窗口尺寸回调函数
-void windowSizeCallback(GLFWwindow *window, const int width, const int height)
+void windowSizeCallback(GLFWwindow* window, const int width, const int height)
 {
     auto &core = mymc::Core::GetInstance();
     core.getGraphicsAPI().setViewport(0, 0, width, height);
@@ -137,7 +137,7 @@ void Core::run()
 
     // ===== 场景搭建（测试）=====
     // 1. 创建相机实体（必须！场景里要有一个带 CameraComponent 的实体）
-    auto *player = m_entityManager.addEntity<entity::Player>("Norym");
+    auto* player = m_entityManager.addEntity<entity::Player>("Norym");
     player->setPosition(glm::vec3(-0.0f, 55.0f, 0.0f));
 
     // 2. 让相机看向原点（需要 experimental 扩展）
@@ -150,7 +150,7 @@ void Core::run()
     m_entityManager.reloadMainCamera();
     auto camera = m_entityManager.getMainCamera();
 
-    std::thread word_build_thread([&](){while (true) {m_world->update();}});
+    std::thread word_build_thread([&]() { while (true) m_world->update(); });
 
     while (!glfwWindowShouldClose(m_window))
     {
@@ -198,7 +198,11 @@ void Core::run()
         m_inputManager.clearStates(); // 每帧清理按键状态
         GraphicsAPI::ClearBuffers();  // 每帧清屏
 
+        speed_test.restart();
+
         m_renderQueue.draw(m_graphicsAPI, camera_data);
+
+        auto time3 = speed_test.elapsed_ms();
 
         glfwSwapBuffers(m_window); // 交换缓冲上屏
     }

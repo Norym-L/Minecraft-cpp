@@ -7,7 +7,7 @@
 
 namespace server
 {
-class Chunk // TODO 区块加载和世界生成
+class Chunk
 {
 public:
     friend class World;
