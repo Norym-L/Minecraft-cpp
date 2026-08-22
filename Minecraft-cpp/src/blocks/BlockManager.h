@@ -4,6 +4,8 @@
 #include <unordered_map>
 
 #include "block.h"
+#include "graphics/TextureAtlas.h"
+#include "render/MeshBuilder.h" // Face 枚举
 
 namespace block
 {
@@ -63,8 +65,35 @@ public:
      */
     void loadFromJson(const std::string& path = "mymc/block/block_register.json");
 
+    /**
+     * 获取全局方块材质（所有方块共用的图集材质）
+     * @return 材质共享指针；图集构建失败时为 nullptr
+     */
+    [[nodiscard]] std::shared_ptr<mymc::Material> getAtlasMaterial() const { return m_atlasMaterial; }
+
+    /**
+     * 获取某方块某面的图集 UV 矩形
+     * @param block_id 方块注册id
+     * @param face     面方向
+     * @return UV 矩形；未找到时返回全零矩形
+     */
+    [[nodiscard]] mymc::UVRect getAtlasUV(std::uint64_t block_id, mymc::Face face) const;
+
+    /**
+     * 把网格面方向映射到 6 贴图数组下标（顶/底/前(+Z)/后(-Z)/右(+X)/左(-X)）
+     * @param face 面方向
+     * @return 0~5
+     */
+    static int faceToTextureIndex(mymc::Face face);
+
 private:
-    std::unordered_map<std::uint64_t, std::unique_ptr<Block> > m_blockMap;    // 方块映射表
+    /// 构建贴图图集并创建全局方块材质（init 内部调用）
+    void buildAtlas();
+
+private:
+    std::unordered_map<std::uint64_t, std::unique_ptr<Block> > m_blockMap;      // 方块映射表
+    std::shared_ptr<mymc::TextureAtlas> m_atlas;                                // 贴图图集
+    std::shared_ptr<mymc::Material> m_atlasMaterial;                            // 全局方块材质
 };
 } // block
 

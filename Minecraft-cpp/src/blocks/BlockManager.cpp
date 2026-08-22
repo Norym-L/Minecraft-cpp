@@ -1,9 +1,12 @@
 #include "BlockManager.h"
 
+#include <cstdio>
 #include <iostream>
 #include <stdexcept>
 
 #include "core/Core.h"
+#include "graphics/Texture.h"
+#include "render/Material.h"
 #include "nlohmann/json.hpp"
 
 namespace block
@@ -13,6 +16,91 @@ BlockManager::BlockManager() = default;
 void BlockManager::init() // TODO 完善注册结构
 {
     loadFromJson();
+    buildAtlas();
+}
+
+void BlockManager::buildAtlas()
+{
+    m_atlas = std::make_shared<mymc::TextureAtlas>();
+
+    // 登记所有方块的面贴图（TextureManager 缓存保证同一路径只占用一个瓦片）
+    for (const auto &[id, block]: m_blockMap)
+    {
+        for (const auto &tex: block->m_textures)
+        {
+            if (tex)
+            {
+                m_atlas->addTexture(*tex);
+            }
+        }
+    }
+
+    const auto atlas_texture = m_atlas->build();
+    if (!atlas_texture)
+    {
+        std::cerr << "BlockManager：贴图图集构建失败" << std::endl;
+        return;
+    }
+
+    // 全局方块材质：一张图集 + 默认 3D 着色器
+    m_atlasMaterial = std::make_shared<mymc::Material>();
+    m_atlasMaterial->setShaderProgram(mymc::Core::GetInstance().getGraphicsAPI().getDefaultShaderProgram());
+    m_atlasMaterial->setParam("uAtlas", atlas_texture);
+
+    // 所有非空气方块共用该材质
+    for (auto &[id, block]: m_blockMap)
+    {
+        if (block->m_id != 0)
+        {
+            block->m_material = m_atlasMaterial;
+        }
+    }
+
+    // 运行时自检：打印各方块六面 UV，便于核对面贴图映射是否正确
+    std::cerr << "[BlockManager] 图集 " << atlas_texture->getWidth() << "x" << atlas_texture->getHeight()
+              << " 瓦片数 " << m_atlas->getTileCount() << std::endl;
+    for (const auto &[id, block]: m_blockMap)
+    {
+        if (block->m_id == 0 || !m_atlas)
+        {
+            continue;
+        }
+        std::cerr << "  block[" << block->m_id << "] " << block->m_name << " UV:";
+        for (int i = 0; i < 6; ++i)
+        {
+            const mymc::UVRect r = m_atlas->getUV(block->m_textures[i].get());
+            std::cerr << " {" << r.min.x << "," << r.min.y << " x" << r.size.x << "," << r.size.y << "}";
+        }
+        std::cerr << std::endl;
+    }
+}
+
+int BlockManager::faceToTextureIndex(const mymc::Face face)
+{
+    // 与历史 Material::setFaceTextures + 着色器按法线选面的语义保持一致：
+    // [0]=顶(+Y) [1]=底(-Y) [2]=前(+Z) [3]=后(-Z) [4]=右(+X) [5]=左(-X)
+    switch (face)
+    {
+    case mymc::Face::Y_PLUS:  return 0;
+    case mymc::Face::Y_MINUS: return 1;
+    case mymc::Face::Z_PLUS:  return 2;
+    case mymc::Face::Z_MINUS: return 3;
+    case mymc::Face::X_PLUS:  return 4;
+    case mymc::Face::X_MINUS: return 5;
+    }
+    return 0;
+}
+
+mymc::UVRect BlockManager::getAtlasUV(const std::uint64_t block_id, const mymc::Face face) const
+{
+    if (!m_atlas)
+    {
+        return mymc::UVRect{};
+    }
+
+    const auto &block = getBlock(block_id);
+    const auto *tex = block.m_textures[faceToTextureIndex(face)].get();
+    return tex ? m_atlas->getUV(tex) : mymc::UVRect{};
 }
 
 BlockManager &BlockManager::GetInstance()

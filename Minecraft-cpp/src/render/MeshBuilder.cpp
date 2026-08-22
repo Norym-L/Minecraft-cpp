@@ -232,8 +232,9 @@ void MeshBuilder::ensureLayout()
 }
 
 void MeshBuilder::addGreedyQuad(const int x, const int y, const int z,
-                                 const int size1, const int size2,
-                                 const Face face)
+                                const int size1, const int size2,
+                                const Face face,
+                                const glm::vec2 &uv_min, const glm::vec2 &uv_size)
 {
     ensureLayout();
 
@@ -311,8 +312,8 @@ void MeshBuilder::addGreedyQuad(const int x, const int y, const int z,
         break;
     }
 
-    // UV 坐标（与原始 CreateBox 一致）
-    const std::array<std::array<float, 2>, 4> uvs = {{
+    // 瓦片坐标（每方块重复一次，v1 沿面延伸方向）
+    const std::array<std::array<float, 2>, 4> tile_uvs = {{
         {{w, h}},   // 0
         {{0, h}},   // 1
         {{0, 0}},   // 2
@@ -323,14 +324,17 @@ void MeshBuilder::addGreedyQuad(const int x, const int y, const int z,
 
     for (int i = 0; i < 4; ++i)
     {
+        // 图集矩形内的 UV：uvMin + 瓦片坐标 * uvSize
+        const glm::vec2 atlas_uv = uv_min + glm::vec2(tile_uvs[i][0], tile_uvs[i][1]) * uv_size;
+
         m_vertices.push_back(positions[i][0]);
         m_vertices.push_back(positions[i][1]);
         m_vertices.push_back(positions[i][2]);
         m_vertices.push_back(1.0f);
         m_vertices.push_back(1.0f);
         m_vertices.push_back(1.0f);
-        m_vertices.push_back(uvs[i][0]);
-        m_vertices.push_back(uvs[i][1]);
+        m_vertices.push_back(atlas_uv.x);
+        m_vertices.push_back(atlas_uv.y);
         m_vertices.push_back(normal.x);
         m_vertices.push_back(normal.y);
         m_vertices.push_back(normal.z);

@@ -63,8 +63,11 @@ public:
      * @param size1  第一维大小（宽度）
      * @param size2  第二维大小（高度）
      * @param face   面方向
+     * @param uv_min 图集 UV 矩形左上角（归一化）
+     * @param uv_size 图集 UV 矩形宽高（归一化）
      */
-    void addGreedyQuad(int x, int y, int z, int size1, int size2, Face face);
+    void addGreedyQuad(int x, int y, int z, int size1, int size2, Face face,
+                       const glm::vec2 &uv_min, const glm::vec2 &uv_size);
 
     /**
      * @brief 构建合并后的网格。

@@ -135,12 +135,7 @@ const std::shared_ptr<ShaderProgram> &GraphicsAPI::getDefaultShaderProgram()
 				in vec3 vNormal;
 				in vec3 vFragPos;
 
-				uniform sampler2D blockTexTop;    // +Y (顶面)
-				uniform sampler2D blockTexBottom; // -Y (底面)
-				uniform sampler2D blockTexFront;  // +Z (正面)
-				uniform sampler2D blockTexBack;   // -Z (后面)
-				uniform sampler2D blockTexRight;  // +X (右面)
-				uniform sampler2D blockTexLeft;   // -X (左面)
+				uniform sampler2D uAtlas; // 方块贴图图集：种类与面方向差异已烘焙进顶点 UV
 				uniform int uUseTexture;
 
 				void main()
@@ -165,17 +160,11 @@ const std::shared_ptr<ShaderProgram> &GraphicsAPI::getDefaultShaderProgram()
 
 					vec3 result = diffuse + specular + ambient;
 
-					//根据法线方向选择对应面的贴图
+					//图集采样：方块种类与面方向差异已烘焙进顶点 UV
 					vec4 texColor;
 					if (uUseTexture == 1)
 					{
-						vec3 n = normalize(vNormal);
-						if      (n.y >  0.5) texColor = texture(blockTexTop, vUV);
-						else if (n.y < -0.5) texColor = texture(blockTexBottom, vUV);
-						else if (n.z >  0.5) texColor = texture(blockTexFront, vUV);
-						else if (n.z < -0.5) texColor = texture(blockTexBack, vUV);
-						else if (n.x >  0.5) texColor = texture(blockTexRight, vUV);
-						else                 texColor = texture(blockTexLeft, vUV);
+						texColor = texture(uAtlas, vUV);
 					}
 					else
 					{

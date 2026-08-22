@@ -67,10 +67,11 @@ public:
     void createRenderBuf();
 
 private:
-    mymc::ChunkPos m_chunkPos = {};                      // 区块的坐标
-    std::array<ChunkSections, 16> m_sections;            // 区块垂直切片
-    bool m_wasChanged = false;                           // 区块是否发生改变
-    std::vector<mymc::RenderCommand> m_renderCommands3D; // 渲染命令缓存
+    mymc::ChunkPos m_chunkPos = {};                                  // 区块的坐标
+    std::array<ChunkSections, 16> m_sections;                        // 区块垂直切片
+    bool m_wasChanged = false;                                       // 区块是否发生改变
+    std::vector<mymc::RenderCommand> m_renderCommands3D;             // 渲染命令缓存
+    std::vector<std::shared_ptr<mymc::Mesh>> m_mergedMeshes;         // 合并网格缓存（渲染命令的裸指针指向这里）
 };
 } // server
 

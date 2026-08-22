@@ -3,6 +3,7 @@
 #include "graphics/GraphicsAPI.h"
 #include "graphics/ShaderProgram.h"
 #include "graphics/Texture.h"
+#include "graphics/TextureAtlas.h"
 #include "graphics/VertexLayout.h"
 
 #include "render/Material.h"

@@ -27,6 +27,24 @@ void ChunkSections::createRenderBuf(const int x_offset, const int y_offset, cons
     m_renderCommands3D.clear();
     m_meshes.clear();
 
+    const auto &block_manager = mymc::Core::GetInstance().getBlockManager();
+    auto       *atlas_material = block_manager.getAtlasMaterial().get();
+
+    // 图集 UV 缓存：每方块每面只查询一次（rect[face] 与 Face 枚举顺序一致）
+    std::unordered_map<std::uint64_t, std::array<mymc::UVRect, 6>> uv_cache;
+    auto rectFor = [&](const std::uint64_t block_id, const mymc::Face face) -> const mymc::UVRect &
+    {
+        auto &rects = uv_cache[block_id];
+        if (rects[0].size == glm::vec2(0.0f)) // 未填充过
+        {
+            for (int i = 0; i < 6; ++i)
+            {
+                rects[i] = block_manager.getAtlasUV(block_id, static_cast<mymc::Face>(i));
+            }
+        }
+        return rects[static_cast<int>(face)];
+    };
+
     // 按方块ID分组收集顶点
     std::unordered_map<std::uint64_t, mymc::MeshBuilder> builders;
 
@@ -76,7 +94,8 @@ void ChunkSections::createRenderBuf(const int x_offset, const int y_offset, cons
                     for (int dx = 0; dx < width; ++dx)
                         visited[x + dx][z + dz] = true;
 
-                builders[block_id].addGreedyQuad(x, y, z, width, depth, mymc::Face::Y_PLUS);
+                const auto &uv_rect = rectFor(block_id, mymc::Face::Y_PLUS);
+                builders[block_id].addGreedyQuad(x, y, z, width, depth, mymc::Face::Y_PLUS, uv_rect.min, uv_rect.size);
             }
         }
     }
@@ -123,7 +142,8 @@ void ChunkSections::createRenderBuf(const int x_offset, const int y_offset, cons
                     for (int dx = 0; dx < width; ++dx)
                         visited[x + dx][z + dz] = true;
 
-                builders[block_id].addGreedyQuad(x, y, z, width, depth, mymc::Face::Y_MINUS);
+                const auto &uv_rect = rectFor(block_id, mymc::Face::Y_MINUS);
+                builders[block_id].addGreedyQuad(x, y, z, width, depth, mymc::Face::Y_MINUS, uv_rect.min, uv_rect.size);
             }
         }
     }
@@ -170,7 +190,8 @@ void ChunkSections::createRenderBuf(const int x_offset, const int y_offset, cons
                     for (int dx = 0; dx < width; ++dx)
                         visited[x + dx][y + dy] = true;
 
-                builders[block_id].addGreedyQuad(x, y, z, width, height, mymc::Face::Z_MINUS);
+                const auto &uv_rect = rectFor(block_id, mymc::Face::Z_MINUS);
+                builders[block_id].addGreedyQuad(x, y, z, width, height, mymc::Face::Z_MINUS, uv_rect.min, uv_rect.size);
             }
         }
     }
@@ -217,7 +238,8 @@ void ChunkSections::createRenderBuf(const int x_offset, const int y_offset, cons
                     for (int dx = 0; dx < width; ++dx)
                         visited[x + dx][y + dy] = true;
 
-                builders[block_id].addGreedyQuad(x, y, z, width, height, mymc::Face::Z_PLUS);
+                const auto &uv_rect = rectFor(block_id, mymc::Face::Z_PLUS);
+                builders[block_id].addGreedyQuad(x, y, z, width, height, mymc::Face::Z_PLUS, uv_rect.min, uv_rect.size);
             }
         }
     }
@@ -265,7 +287,8 @@ void ChunkSections::createRenderBuf(const int x_offset, const int y_offset, cons
                         visited[y + dy][z + dz] = true;
 
                 // X+/X- 面：width沿Y轴，height沿Z轴；addGreedyQuad中w沿Z轴，h沿Y轴，需交换
-                builders[block_id].addGreedyQuad(x, y, z, height, width, mymc::Face::X_PLUS);
+                const auto &uv_rect = rectFor(block_id, mymc::Face::X_PLUS);
+                builders[block_id].addGreedyQuad(x, y, z, height, width, mymc::Face::X_PLUS, uv_rect.min, uv_rect.size);
             }
         }
     }
@@ -313,7 +336,8 @@ void ChunkSections::createRenderBuf(const int x_offset, const int y_offset, cons
                         visited[y + dy][z + dz] = true;
 
                 // X+/X- 面：width沿Y轴，height沿Z轴；addGreedyQuad中w沿Z轴，h沿Y轴，需交换
-                builders[block_id].addGreedyQuad(x, y, z, height, width, mymc::Face::X_MINUS);
+                const auto &uv_rect = rectFor(block_id, mymc::Face::X_MINUS);
+                builders[block_id].addGreedyQuad(x, y, z, height, width, mymc::Face::X_MINUS, uv_rect.min, uv_rect.size);
             }
         }
     }
@@ -330,7 +354,7 @@ void ChunkSections::createRenderBuf(const int x_offset, const int y_offset, cons
 
         mymc::RenderCommand command = {
             .mesh = mergedMesh.get(),
-            .material = mymc::Core::GetInstance().getBlockManager().getBlock(block_id).material().get(),
+            .material = atlas_material, // 图集方案下所有方块共用同一个材质
             .model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(x_offset, y_offset, z_offset))
         };
 

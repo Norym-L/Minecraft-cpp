@@ -37,6 +37,13 @@ void Texture::init(const int width, const int height, const int num_channels, co
         m_textureID = 0;
     }
 
+    // 保留 CPU 端像素副本（供图集拼接等用途）
+    m_pixels.clear();
+    if (data)
+    {
+        m_pixels.assign(data, data + static_cast<size_t>(width) * height * num_channels);
+    }
+
     glGenTextures(1, &m_textureID);
     glBindTexture(GL_TEXTURE_2D, m_textureID);
 
@@ -119,6 +126,21 @@ int Texture::getHeight() const
     return m_height;
 }
 
+int Texture::getChannels() const
+{
+    return m_numChannels;
+}
+
+const std::vector<unsigned char> &Texture::getPixels() const
+{
+    return m_pixels;
+}
+
+bool Texture::hasPixels() const
+{
+    return !m_pixels.empty();
+}
+
 std::shared_ptr<Texture> Texture::Load(const std::string &path)
 {
     //统一走 TextureManager 缓存，避免同一路径重复解码
@@ -152,11 +174,15 @@ std::shared_ptr<Texture> TextureManager::LoadFromFile(const std::string &path)
         return nullptr;
     }
 
-    unsigned char* data = stbi_load(fullPath.string().c_str(), &width, &height, &numChannels, 0);
+    unsigned char* data = stbi_load(fullPath.string().c_str(), &width, &height, &numChannels, 4); // 强制 RGBA，供图集统一使用
     if (!data)
     {
         return nullptr;
     }
+
+    // 注意：stbi 的 comp 出参返回的是图片原始通道数，而缓冲已按 req_comp=4 输出 RGBA。
+    // 必须以实际缓冲通道数（4）记账，否则像素副本尺寸/GL 格式/图集拼接会错乱。
+    numChannels = 4;
 
     auto result = std::make_shared<Texture>(width, height, numChannels, data);
     stbi_image_free(data);
