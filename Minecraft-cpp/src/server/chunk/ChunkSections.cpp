@@ -16,7 +16,7 @@ void ChunkSections::fill(const std::uint64_t block_id)
     m_wasChanged = true;
 }
 
-void ChunkSections::createRenderBuf(const int x_offset, const int y_offset, const int z_offset)
+void ChunkSections::buildMeshData(const int x_offset, const int y_offset, const int z_offset)
 {
     if (!m_wasChanged)
     {
@@ -24,11 +24,9 @@ void ChunkSections::createRenderBuf(const int x_offset, const int y_offset, cons
     }
 
     m_wasChanged = false;
-    m_renderCommands3D.clear();
-    m_meshes.clear();
+    m_meshData.clear();
 
     const auto &block_manager = mymc::Core::GetInstance().getBlockManager();
-    auto       *atlas_material = block_manager.getAtlasMaterial().get();
 
     // 图集 UV 缓存：每方块每面只查询一次（rect[face] 与 Face 枚举顺序一致）
     std::unordered_map<std::uint64_t, std::array<mymc::UVRect, 6>> uv_cache;
@@ -342,23 +340,15 @@ void ChunkSections::createRenderBuf(const int x_offset, const int y_offset, cons
         }
     }
 
-    // 构建每个方块ID的合并网格
-    for (auto& [block_id, builder] : builders)
+    // 每个方块ID生成独立的 CPU 网格数据（由外层统一合并）
+    for (auto &[block_id, builder]: builders)
     {
-        auto mergedMesh = builder.build();
-        if (!mergedMesh)
+        (void)block_id;
+        auto data = builder.buildMeshData();
+        if (data)
         {
-            continue;
+            m_meshData.push_back(data);
         }
-        m_meshes.push_back(mergedMesh);
-
-        mymc::RenderCommand command = {
-            .mesh = mergedMesh.get(),
-            .material = atlas_material, // 图集方案下所有方块共用同一个材质
-            .model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(x_offset, y_offset, z_offset))
-        };
-
-        m_renderCommands3D.push_back(command);
     }
 }
 

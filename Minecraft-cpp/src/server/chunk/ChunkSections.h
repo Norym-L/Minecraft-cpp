@@ -56,12 +56,12 @@ public:
     void fill(std::uint64_t block_id);
 
     /**
-     * 建立渲染缓存
+     * 构建网格的纯 CPU 顶点数据（不做任何 GL 调用，可在任意线程执行）
      * @param x_offset x偏移量
      * @param y_offset y偏移量
      * @param z_offset z偏移量
      */
-    void createRenderBuf(int x_offset, int y_offset, int z_offset);
+    void buildMeshData(int x_offset, int y_offset, int z_offset);
 
     /**
      * 区块是否发生变化
@@ -85,8 +85,7 @@ private:
 private:
     bool m_wasChanged = false;                               // 区块是否发生改变
     std::array<std::uint64_t, 16 * 16 * 16> m_blockIDs = {}; // 存储方块的唯一id
-    std::vector<mymc::RenderCommand> m_renderCommands3D;     // 渲染队列
-    std::vector<std::shared_ptr<mymc::Mesh>> m_meshes;       // 网格缓存
+    std::vector<std::shared_ptr<mymc::MeshData>> m_meshData; // 网格数据缓存（CPU，供外层合并）
 };
 } // server
 

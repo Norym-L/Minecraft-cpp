@@ -1,5 +1,6 @@
 #ifndef MINECRAFT_CPP_CHUNK_H
 #define MINECRAFT_CPP_CHUNK_H
+#include <atomic>
 #include <memory>
 
 #include "ChunkSections.h"
@@ -62,16 +63,26 @@ public:
     [[nodiscard]] inline std::uint64_t getBlock(int x, int y, int z) const;
 
     /**
-     * 创建区块的渲染缓存
+     * 构建区块网格的纯 CPU 顶点数据（合并所有小节，chunk 内部去重）。
+     * 可在任意线程执行（不做任何 GL 调用）；完成后置 m_uploadRequested。
      */
-    void createRenderBuf();
+    void buildMeshData();
+
+    /**
+     * 把待上传的 CPU 顶点数据升级为 GL 网格并更新渲染命令。
+     * 必须在 OpenGL 线程调用。
+     */
+    void uploadMesh();
 
 private:
     mymc::ChunkPos m_chunkPos = {};                                  // 区块的坐标
     std::array<ChunkSections, 16> m_sections;                        // 区块垂直切片
-    bool m_wasChanged = false;                                       // 区块是否发生改变
-    std::vector<mymc::RenderCommand> m_renderCommands3D;             // 渲染命令缓存
-    std::vector<std::shared_ptr<mymc::Mesh>> m_mergedMeshes;         // 合并网格缓存（渲染命令的裸指针指向这里）
+    std::atomic<bool> m_wasChanged{false};                           // 区块是否发生改变（方块数据层面）
+    std::atomic<bool> m_buildInFlight{false};                        // 是否有生成/重建任务在飞行中
+    std::shared_ptr<mymc::MeshData> m_meshData;                      // 待上传的 CPU 顶点数据（构建线程产出）
+    std::atomic<bool> m_uploadRequested{false};                      // 有新 MeshData 待 GL 上传
+    std::shared_ptr<mymc::Mesh> m_mesh;                              // GL 网格（GL 线程持有）
+    std::vector<mymc::RenderCommand> m_renderCommands3D;             // 渲染命令缓存（GL 线程维护）
 };
 } // server
 
