@@ -41,6 +41,7 @@ void BlockManager::buildAtlas()
         std::cerr << "BlockManager：贴图图集构建失败" << std::endl;
         return;
     }
+    m_atlasTexture = atlas_texture; // 供 UI 图标等直接引用
 
     // 全局方块材质：一张图集 + 默认 3D 着色器
     m_atlasMaterial = std::make_shared<mymc::Material>();

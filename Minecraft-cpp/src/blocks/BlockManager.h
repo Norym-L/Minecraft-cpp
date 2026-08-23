@@ -72,6 +72,12 @@ public:
     [[nodiscard]] std::shared_ptr<mymc::Material> getAtlasMaterial() const { return m_atlasMaterial; }
 
     /**
+     * 获取全局方块图集纹理（供 UI 图标等使用）
+     * @return 图集纹理共享指针；图集构建失败时为 nullptr
+     */
+    [[nodiscard]] const std::shared_ptr<mymc::Texture> &getAtlasTexture() const { return m_atlasTexture; }
+
+    /**
      * 获取某方块某面的图集 UV 矩形
      * @param block_id 方块注册id
      * @param face     面方向
@@ -93,6 +99,7 @@ private:
 private:
     std::unordered_map<std::uint64_t, std::unique_ptr<Block> > m_blockMap;      // 方块映射表
     std::shared_ptr<mymc::TextureAtlas> m_atlas;                                // 贴图图集
+    std::shared_ptr<mymc::Texture> m_atlasTexture;                              // 图集纹理（构建成功后持有）
     std::shared_ptr<mymc::Material> m_atlasMaterial;                            // 全局方块材质
 };
 } // block
