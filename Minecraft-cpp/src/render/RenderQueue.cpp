@@ -79,5 +79,43 @@ void RenderQueue::draw(GraphicsAPI &graphicsAPI, const CameraData &camera_data)
     }
 
     m_commands.clear();
+
+    // --- UI：正交投影屏幕空间绘制（叠加在 3D 之上）---
+    // UI 顶点位于像素空间（由 UiRoot 按景框尺寸构建），关闭深度测试保证覆盖绘制
+    // 混合：UI 依赖半透明（格背景 0.85、字形透明区）；保存并恢复原状态
+    const GLboolean depth_enabled = glIsEnabled(GL_DEPTH_TEST);
+    const GLboolean blend_enabled = glIsEnabled(GL_BLEND);
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    for (auto &ui_command: m_commandsUI)
+    {
+        if (!ui_command.shader_program || !ui_command.mesh)
+        {
+            continue;
+        }
+        ui_command.shader_program->bind();
+        ui_command.shader_program->setUniform("uProjection", camera_data.ortho_martix);
+        ui_command.mesh->bind();
+        for (const auto &batch: ui_command.batches)
+        {
+            ui_command.shader_program->setUniform("uUseTexture", batch.texture ? 1 : 0);
+            if (batch.texture)
+            {
+                ui_command.shader_program->setTexture("uTex", batch.texture);
+            }
+            Mesh::DrawIndexedRange(batch.index_offset, batch.index_count);
+        }
+        Mesh::Unbind();
+    }
+    if (depth_enabled)
+    {
+        glEnable(GL_DEPTH_TEST);
+    }
+    if (!blend_enabled)
+    {
+        glDisable(GL_BLEND);
+    }
+    m_commandsUI.clear();
 }
 }

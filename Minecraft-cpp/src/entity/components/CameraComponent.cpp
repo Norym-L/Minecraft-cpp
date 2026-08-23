@@ -11,8 +11,8 @@ void CameraComponent::init()
         .view_matrix    = getViewMatrix(),
         .project_matrix = getProjectMatrix(800.0f / 600.0f), // to do 实现从Core获取屏幕宽高比
         .ortho_martix   = glm::ortho(
-            0.0f, static_cast<float>(600),
-            0.0f, static_cast<float>(800)),
+            0.0f, static_cast<float>(m_windowWidth),
+            0.0f, static_cast<float>(m_windowHeight)),
         .position = m_owner->getPosition()
     };
     m_name = "Camera";
@@ -25,8 +25,8 @@ void CameraComponent::update(float delta_time)
     m_cameraData.project_matrix =
             getProjectMatrix(static_cast<float>(m_windowWidth) / static_cast<float>(m_windowHeight));
     m_cameraData.ortho_martix = glm::ortho(
-        0.0f, static_cast<float>(m_windowHeight),
-        0.0f, static_cast<float>(m_windowWidth));
+        0.0f, static_cast<float>(m_windowWidth),
+        0.0f, static_cast<float>(m_windowHeight));
     m_cameraData.position = m_owner->getPosition();
 }
 

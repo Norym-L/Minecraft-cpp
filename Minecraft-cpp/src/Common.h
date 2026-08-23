@@ -32,7 +32,8 @@ struct LightData
 /// @brief UI 批次，描述一次使用相同贴图的索引绘制范围。
 struct UIBatch
 {
-    Texture *texture     = nullptr; ///< 批次使用的贴图
+    Texture *texture     = nullptr; ///< 批次使用的贴图（nullptr = 纯色块，不采样）
+    uint32_t index_offset = 0;      ///< 批次在网格索引缓冲中的起始索引位置
     uint32_t index_count = 0;       ///< 批次的索引数量
 };
 

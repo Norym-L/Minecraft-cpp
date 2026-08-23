@@ -47,6 +47,7 @@ struct RenderCommandUI
     ShaderProgram *shader_program; // 使用的着色器程序
     size_t screen_width;           // 屏幕宽度
     size_t screen_height;          // 屏幕高度
+    std::vector<UIBatch> batches;  // 绘制批次（按纹理分组的连续索引范围）
 };
 
 /// @brief 渲染队列类，用于存储和管理 3D/2D/UI 渲染命令并统一执行绘制。
