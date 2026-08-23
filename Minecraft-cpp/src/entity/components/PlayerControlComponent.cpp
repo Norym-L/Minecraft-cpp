@@ -3,11 +3,27 @@
 #include <algorithm>
 
 #include "core/Core.h"
+#include "InventoryBagComponent.h"
+#include "InventorySelectorComponent.h"
 
 namespace entity
 {
 void PlayerControlComponent::init()
-{}
+{
+    // 缓存所属实体的物品栏组件指针（须在 Player 构造中先于本组件装配）
+    // 指针指向 Entity::m_components 中的堆对象，实体存活期间稳定
+    m_inventory = m_owner->getComponent<InventoryBagComponent>();
+    m_selector  = m_owner->getComponent<InventorySelectorComponent>();
+}
+
+std::uint64_t PlayerControlComponent::getSelectedBlockId() const
+{
+    if (m_inventory == nullptr || m_selector == nullptr)
+    {
+        return 0; // 组件缺失时视为空气（无法放置）
+    }
+    return m_inventory->getHotbarSlot(m_selector->getSelectedIndex()).blockId;
+}
 
 void PlayerControlComponent::update(float delta_time)
 {
@@ -86,14 +102,18 @@ void PlayerControlComponent::update(float delta_time)
         }
     }
 
-    // 右键：单击放置当前选中的方块到命中面的相邻格
+    // 右键：单击放置当前选中快捷栏槽位的方块到命中面的相邻格
     if (input_manager.wasMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT))
     {
-        server::World::RaycastHit hit;
-        if (world.raycastBlock(eye_pos, eye_dir, kReach, hit))
+        const std::uint64_t selected_block_id = getSelectedBlockId();
+        if (selected_block_id != 0) // 空槽（空气）不执行放置，避免误删相邻方块
         {
-            world.setBlockAt(hit.blockX + hit.faceX, hit.blockY + hit.faceY, hit.blockZ + hit.faceZ,
-                             m_selectedBlockId);
+            server::World::RaycastHit hit;
+            if (world.raycastBlock(eye_pos, eye_dir, kReach, hit))
+            {
+                world.setBlockAt(hit.blockX + hit.faceX, hit.blockY + hit.faceY, hit.blockZ + hit.faceZ,
+                                 selected_block_id);
+            }
         }
     }
 }
