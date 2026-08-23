@@ -10,6 +10,7 @@
 #include "io/FileSystem.h"
 #include "server/chunk/Chunk.h"
 #include "server/world/World.h"
+#include "ui/UiRoot.h"
 
 
 namespace mymc
@@ -106,11 +107,38 @@ public:
      */
     server::World &getWorld();
 
+    /**
+     * 获取窗口宽度
+     * @return 窗口宽度（像素）
+     */
+    [[nodiscard]] int getWindowWidth() const;
+
+    /**
+     * 获取窗口高度
+     * @return 窗口高度（像素）
+     */
+    [[nodiscard]] int getWindowHeight() const;
+
+    /**
+     * 同步窗口尺寸（供 GLFW 窗口回调与初始化使用）
+     * @param width  窗口宽度（像素）
+     * @param height 窗口高度（像素）
+     */
+    void setWindowSize(int width, int height);
+
+    /**
+     * 获取 UI 根组件
+     * @return UI 根组件引用
+     */
+    ui::UiRoot &getUiRoot();
+
 private:
     GLFWwindow* m_window = nullptr;                   // 窗口指针
     std::chrono::steady_clock::time_point m_lastTime; // 上一帧时间点（用于计算 deltaTime）
     bool m_cursorEnabled = false;                     // 光标是否启用
     bool m_renderMode = true;                         // 设置渲染模式 true正常 false线框
+    int m_windowWidth = 800;                          // 窗口宽度（像素）
+    int m_windowHeight = 600;                         // 窗口高度（像素）
     GraphicsAPI m_graphicsAPI;                        // 图形api
     RenderQueue m_renderQueue;                        // 渲染队列
     InputManager m_inputManager;                      // 按键输入管理器
@@ -120,5 +148,6 @@ private:
     TextureManager m_textureManager;                  // 贴图管理器
     std::unique_ptr<server::World> m_world;           // 世界
     std::unique_ptr<utility::TaskPool> m_taskPool;    // 工作线程池（区块生成/网格构建）
+    std::unique_ptr<ui::UiRoot> m_uiRoot;             // UI 根组件
 };
 }

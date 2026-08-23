@@ -6,6 +6,7 @@
 #include "entity/Player.h"
 #include "entity/components/CameraComponent.h"
 #include "Minecraft-cpp/logger/SpeedTest.h"
+#include "ui/HotbarWidget.h"
 
 // 回调函数
 namespace
@@ -55,10 +56,18 @@ void cursorPositionCallback(GLFWwindow* window, const double xpos, const double 
     inputManager.setMousePositionChanged(true);
 }
 
+//鼠标滚轮回调函数
+void scrollCallback(GLFWwindow* window, const double xoffset, const double yoffset)
+{
+    auto &inputManager = mymc::Core::GetInstance().getInputManager();
+    inputManager.addScrollOffset(glm::vec2(static_cast<float>(xoffset), static_cast<float>(yoffset)));
+}
+
 //窗口尺寸回调函数
 void windowSizeCallback(GLFWwindow* window, const int width, const int height)
 {
     auto &core = mymc::Core::GetInstance();
+    core.setWindowSize(width, height);
     core.getGraphicsAPI().setViewport(0, 0, width, height);
     if (const auto entity = core.getEntityManager().getMainCamera())
     {
@@ -77,6 +86,9 @@ Core &Core::GetInstance()
 
 bool Core::init(const int width, const int height, const std::string &title)
 {
+    m_windowWidth  = width;
+    m_windowHeight = height;
+
     if (!glfwInit())
     {
         std::cerr << "GLFW 初始化失败" << std::endl;
@@ -98,6 +110,7 @@ bool Core::init(const int width, const int height, const std::string &title)
     glfwSetKeyCallback(m_window, keyCallback);
     glfwSetMouseButtonCallback(m_window, mouseButtonCallback);
     glfwSetCursorPosCallback(m_window, cursorPositionCallback);
+    glfwSetScrollCallback(m_window, scrollCallback);
     glfwSetWindowSizeCallback(m_window, windowSizeCallback);
     glfwSetInputMode(m_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE); //启用鼠标原始输入
 
@@ -121,6 +134,11 @@ bool Core::init(const int width, const int height, const std::string &title)
     m_taskPool = std::make_unique<utility::TaskPool>(4); // 4 个工作线程
     m_world->setTaskPool(m_taskPool.get());
     m_world->init();
+
+    // UI 根组件（需 GL 上下文就绪后创建：字体纹理与 UI 网格在此构建）
+    m_uiRoot = std::make_unique<ui::UiRoot>(m_windowWidth, m_windowHeight);
+    m_uiRoot->init();
+    m_uiRoot->addChild(std::make_unique<ui::HotbarWidget>(m_uiRoot->getFont()));
 
     setCursorEnabled(true); // 默认启用光标
     glfwSwapInterval(0);    // 关闭垂直同步
@@ -175,6 +193,9 @@ void Core::run()
         // 更新实体
         m_entityManager.update(delta_time);
 
+        // 更新 UI（须在 clearStates 之前消费本帧输入事件）
+        m_uiRoot->update(delta_time);
+
         // 世界请求阶段：仅扫描与提交任务（重活在工作线程池）
         m_world->update();
 
@@ -186,6 +207,9 @@ void Core::run()
 
         auto time2 = speed_test.elapsed_ms();
         // 测试结束
+
+        // UI 渲染：构建批量网格并提交 UI 绘制命令
+        m_uiRoot->render();
 
         CameraData camera_data{};
         //相机部分
@@ -278,5 +302,30 @@ TextureManager &Core::getTextureManager()
 server::World &Core::getWorld()
 {
     return *m_world;
+}
+
+int Core::getWindowWidth() const
+{
+    return m_windowWidth;
+}
+
+int Core::getWindowHeight() const
+{
+    return m_windowHeight;
+}
+
+void Core::setWindowSize(const int width, const int height)
+{
+    m_windowWidth  = width;
+    m_windowHeight = height;
+    if (m_uiRoot)
+    {
+        m_uiRoot->setWindowSize(width, height);
+    }
+}
+
+ui::UiRoot &Core::getUiRoot()
+{
+    return *m_uiRoot;
 }
 }

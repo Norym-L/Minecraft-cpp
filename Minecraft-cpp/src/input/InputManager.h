@@ -153,6 +153,18 @@ public:
          */
     void setMousePositionChangedEventEnable(bool mouse_position_changed_event_enable);
 
+    /**
+     * @brief 累加本帧的滚轮滚动量。
+     * @param offset 滚轮偏移量（x=水平, y=垂直；GLFW 向上为正）
+     */
+    void addScrollOffset(const glm::vec2 &offset);
+
+    /**
+     * @brief 获取本帧累计的滚轮滚动量。
+     * @return glm::vec2 滚轮偏移量（每帧 clearStates 清零）
+     */
+    [[nodiscard]] glm::vec2 getScrollOffset() const;
+
     /// @brief 清空本帧的瞬时状态（鼠标位置改变标志与按键按下/释放标志）。
     void clearStates();
 
@@ -167,6 +179,7 @@ private:
     glm::vec2             m_mousePositionCurrent            = glm::vec2(0.0f); // 当前帧鼠标位置
     bool                  m_mousePositionChanged            = false;           // 鼠标位置是否改变
     bool                  m_mousePositionChangedEventEnable = true;            // 鼠标位置改变事件启用状态
+    glm::vec2             m_scrollOffset                    = glm::vec2(0.0f); // 本帧累计滚轮滚动量
 };
 } // mymc
 

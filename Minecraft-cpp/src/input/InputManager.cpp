@@ -162,9 +162,20 @@ void InputManager::setMousePositionChangedEventEnable(const bool mouse_position_
     m_mousePositionChangedEventEnable = mouse_position_changed_event_enable;
 }
 
+void InputManager::addScrollOffset(const glm::vec2 &offset)
+{
+    m_scrollOffset += offset;
+}
+
+glm::vec2 InputManager::getScrollOffset() const
+{
+    return m_scrollOffset;
+}
+
 void InputManager::clearStates()
 {
     setMousePositionChanged(false);
+    m_scrollOffset = glm::vec2(0.0f);
     for (bool &i: m_KeyPressed)
     {
         i = false;
